@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "522708852035",
+    "project_id": "ebs-kisan-sewa",
+    "storage_bucket": "ebs-kisan-sewa.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:522708852035:android:c51db5bd2e010a8bf123f6",
+        "android_client_info": {
+          "package_name": "com.snss.ebs.kisan_sewa_kendra"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC-dSHnLAesJH-604nRPIubeSFMNC75K40"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
