@@ -3,12 +3,12 @@ description: "Krishi Bhandar shopify website's App"
 
 publish_to: 'none'
 
-version: 2.0.8+13
+version: 2.0.9+14
 
 environment:
   sdk: ^3.5.3
 
-dependencies:
+dependencies: 
   flutter:
     sdk: flutter
 

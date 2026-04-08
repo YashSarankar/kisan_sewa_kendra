@@ -55,7 +55,7 @@ class AuthController {
     };
 
     List<Map<String, String>> current = await getStoredAddresses();
-    
+
     // If name & address1 & pincode matches an existing address, don't duplicate
     bool exists = current.any((a) =>
         a['address1'] == address1 &&
@@ -66,8 +66,43 @@ class AuthController {
       current.insert(0, address); // Add new address at the top
       await prefs.setString(_keyAddressList, jsonEncode(current));
     }
-    
-    if (name != null) await prefs.setString(_keyName, name);
+
+    if (name != null) {
+      await prefs.setString(_keyName, name);
+      // Background sync name to Shopify
+      _updateShopifyCustomerName(name);
+    }
+  }
+
+  static Future<void> _updateShopifyCustomerName(String name) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? customerId = prefs.getString(_keyShopifyId);
+      if (customerId == null) return;
+
+      final names = name.split(' ');
+      final firstName = names.first;
+      final lastName = names.length > 1 ? names.sublist(1).join(' ') : '';
+
+      const String baseUrl = "https://3b7f20-3.myshopify.com/admin/api/2024-10";
+      await http.put(
+        Uri.parse('$baseUrl/customers/$customerId.json'),
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Access-Token': Constants.shopifyAccessToken,
+        },
+        body: jsonEncode({
+          "customer": {
+            "id": customerId,
+            "first_name": firstName,
+            "last_name": lastName,
+          }
+        }),
+      );
+      debugPrint('AuthController: Synced name "$name" to Shopify');
+    } catch (e) {
+      debugPrint('AuthController: Name sync error: $e');
+    }
   }
 
   static Future<List<Map<String, String>>> getStoredAddresses() async {
@@ -119,14 +154,14 @@ class AuthController {
           // Auto-verification on Android (SMS auto-read)
           try {
             await _auth.signInWithCredential(credential);
-            
+
             // Save phone and initial Shopify sync
             final prefs = await SharedPreferences.getInstance();
             await prefs.setString(_keyPhone, phone);
-            
+
             // Critical to sync shopify even in auto-verification
             await syncWithShopify(phone);
-            
+
             onAutoVerified();
           } catch (e) {
             onError('Auto-verification failed: $e');
@@ -137,9 +172,12 @@ class AuthController {
           if (e.code == 'invalid-phone-number') {
             message = 'Invalid phone number. Please check and try again.';
           } else if (e.code == 'too-many-requests') {
-            message = 'Too many attempts. You have been temporarily blocked for security reasons. Please try again in 4-24 hours.';
+            message =
+                'Too many attempts. You have been temporarily blocked for security reasons. Please try again in 4-24 hours.';
           } else if (e.code == 'network-request-failed') {
             message = 'Network error. Please check your internet connection.';
+          } else {
+            message = 'Error (${e.code}): ${e.message}';
           }
           onError(message);
         },

@@ -211,9 +211,9 @@ class _LoginViewState extends State<LoginView>
                             ),
                           ),
                         ),
-                        hintText: '9876543210',
+                        hintText: '9XXXXXXXXX',
                         hintStyle: TextStyle(
-                            color: Colors.grey.shade300, letterSpacing: 1),
+                            color: Colors.grey.shade400, letterSpacing: 1),
                         filled: true,
                         fillColor: Colors.grey.shade50,
                         border: OutlineInputBorder(
@@ -254,7 +254,8 @@ class _LoginViewState extends State<LoginView>
                       width: double.infinity,
                       height: 58,
                       child: ElevatedButton(
-                        onPressed: (_isLoading || _cooldown > 0) ? null : _sendOtp,
+                        onPressed:
+                            (_isLoading || _cooldown > 0) ? null : _sendOtp,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Constants.baseColor,
                           foregroundColor: Colors.white,
@@ -273,7 +274,9 @@ class _LoginViewState extends State<LoginView>
                                 ),
                               )
                             : Text(
-                                _cooldown > 0 ? 'Try again in $_cooldown s' : 'Send OTP',
+                                _cooldown > 0
+                                    ? 'Try again in $_cooldown s'
+                                    : 'Send OTP',
                                 style: const TextStyle(
                                   fontSize: 17,
                                   fontWeight: FontWeight.w700,
