@@ -85,12 +85,10 @@ void main() {
     ]
   }
   ''';
-  
+
   try {
     var d = jsonDecode(jsonStr);
-    var list = (d['orders'] as List).map((e) => OrderModel.fromJson(e)).toList();
-    print('SUCCESS! parsed \');
-  } catch (e) {
-    print('FAIL: \');
-  }
+    var list =
+        (d['orders'] as List).map((e) => OrderModel.fromJson(e)).toList();
+  } catch (e) {}
 }

@@ -58,7 +58,7 @@ class _MyHomePageState extends State<MyHomePage>
       },
       child: Scaffold(
         backgroundColor: Colors.white,
-        appBar: _currentIndex <= 1 ? const KskAppbar() : null,
+        appBar: _currentIndex == 0 ? const KskAppbar() : null,
         drawer: _buildModernDrawer(context),
         body: !_isDataLoaded
             ? const Center(child: CircularProgressIndicator())

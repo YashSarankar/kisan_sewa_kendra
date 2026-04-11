@@ -69,6 +69,11 @@ class ShopifyAPI {
                    currencyCode
                 }
               }
+              subtotalPriceSet {
+                presentmentMoney {
+                   amount
+                }
+              }
               displayFulfillmentStatus
               displayFinancialStatus
               cancelledAt
@@ -78,11 +83,19 @@ class ShopifyAPI {
                 nodes {
                   title
                   quantity
+                  variantTitle
+                  originalUnitPriceSet {
+                    presentmentMoney {
+                       amount
+                    }
+                  }
                   image {
                     url
                   }
                   variant {
+                    id
                     product {
+                      id
                       featuredImage {
                         url
                       }
@@ -125,10 +138,13 @@ class ShopifyAPI {
               }
 
               orders.add({
-                'id': node['id'].toString().split('/').last,
+                'id': node['id'].toString(),
                 'order_number': node['name'].toString().replaceAll('#', ''),
                 'created_at': node['createdAt'],
                 'total_price': totalPrice,
+                'subtotal_price': node['subtotalPriceSet']?['presentmentMoney']
+                        ?['amount']
+                    ?.toString(),
                 'currency': currency,
                 'fulfillment_status':
                     node['displayFulfillmentStatus']?.toLowerCase() ??
@@ -145,10 +161,35 @@ class ShopifyAPI {
                   return {
                     'title': li['title'] ?? '',
                     'quantity': li['quantity'] ?? 0,
+                    'price': li['originalUnitPriceSet']?['presentmentMoney']
+                            ?['amount']
+                        ?.toString() ??
+                        '0.00',
+                    'variant_title': li['variantTitle'] ?? '',
+                    'variant_id':
+                        li['variant']?['id']?.toString().split('/').last,
+                    'product_id': li['variant']?['product']?['id']
+                        ?.toString()
+                        .split('/')
+                        .last,
                     'image': img,
                   };
                 }).toList(),
               });
+
+              // Fallback calculation for subtotal in list view too
+              var lastOrder = orders.last;
+              if (lastOrder['subtotal_price'] == null ||
+                  lastOrder['subtotal_price'] == '0.00' ||
+                  lastOrder['subtotal_price'] == '0') {
+                double sub = 0;
+                for (var item in lastOrder['line_items']) {
+                  sub += (double.tryParse(item['price']?.toString() ?? '0') ??
+                          0) *
+                      (item['quantity'] ?? 0);
+                }
+                lastOrder['subtotal_price'] = sub.toStringAsFixed(2);
+              }
             } catch (e) {
               debugPrint("Mapper Error for order node: $e");
             }
@@ -162,67 +203,311 @@ class ShopifyAPI {
     return [];
   }
 
-  static Future<List<dynamic>> getOrderDetails(String orderId) async {
+  static Future<Map<String, dynamic>> _getAdminData({
+    required String body,
+    Map<String, dynamic>? variables,
+  }) async {
     try {
-      final String query = '''
-        query {
-          order(id: "gid://shopify/Order/$orderId") {
+      final res = await http.post(
+        Uri.parse("$_baseUrl/graphql.json"),
+        headers: _header,
+        body: jsonEncode({
+          'query': body,
+          'variables': variables ?? {},
+        }),
+      );
+      if (res.statusCode == 200) {
+        return jsonDecode(res.body);
+      }
+    } catch (e) {
+      debugPrint("ShopifyAdmin GraphQL Error: $e");
+    }
+    return {};
+  }
+
+  static Future<Map<String, dynamic>> getOrderFullDetails(
+      String orderId) async {
+    try {
+      final String gid =
+          orderId.contains('gid://') ? orderId : "gid://shopify/Order/$orderId";
+
+      final String query = r'''
+        query getOrder($id: ID!) {
+          order(id: $id) {
+            id
+            name
+            createdAt
+            totalPriceSet { presentmentMoney { amount } }
+            subtotalPriceSet { presentmentMoney { amount } }
+            totalTaxSet { presentmentMoney { amount } }
+            totalShippingPriceSet { presentmentMoney { amount } }
+            displayFulfillmentStatus
+            displayFinancialStatus
+            confirmed
+            cancelledAt
+            statusPageUrl
+            
+            fulfillments(first: 10) {
+              id
+              shipmentStatus
+              trackingInfo(first: 10) {
+                number
+                url
+                company
+              }
+            }
+            
+            shippingAddress {
+              name
+              phone
+              company
+              firstName
+              lastName
+              address1
+              address2
+              city
+              province
+              zip
+              country
+            }
+            billingAddress {
+              name
+              phone
+              company
+              firstName
+              lastName
+              address1
+              address2
+              city
+              province
+              zip
+              country
+            }
+            customer {
+              firstName
+              lastName
+              phone
+              email
+              defaultAddress {
+                firstName
+                lastName
+                company
+                address1
+                address2
+                city
+                province
+                zip
+                country
+                phone
+              }
+            }
             lineItems(first: 50) {
               nodes {
                 title
+                quantity
                 variantTitle
-                originalUnitPrice
-                image {
-                  url
-                }
-                variant {
-                  image {
-                    url
-                  }
-                  product {
-                    featuredImage {
-                      url
-                    }
-                  }
-                }
+                image { url }
+                originalUnitPriceSet { presentmentMoney { amount } }
               }
             }
           }
         }
       ''';
 
-      var res = await http.post(
-        Uri.parse(
-            "https://3b7f20-3.myshopify.com/admin/api/2024-10/graphql.json"),
-        body: json.encode({'query': query}),
-        headers: {
-          'content-type': 'application/json',
-          'X-Shopify-Access-Token': Constants.shopifyAccessToken,
-        },
-      );
+      final res = await _getAdminData(body: query, variables: {"id": gid});
 
-      if (res.statusCode == 200) {
-        final decoded = jsonDecode(res.body);
-        if (decoded['data'] != null && decoded['data']['order'] != null) {
-          final nodes = decoded['data']['order']['lineItems']['nodes'] as List;
-          return nodes.map((li) {
-            String? imageUrl = li['image']?['url'] ??
-                li['variant']?['image']?['url'] ??
-                li['variant']?['product']?['featuredImage']?['url'];
+      Map<String, dynamic> finalData = {};
+
+      if (res['data']?['order'] != null) {
+        var o = res['data']['order'];
+        var sa = o['shippingAddress'] ?? {};
+        var ba = o['billingAddress'] ?? {};
+        var c = o['customer'] ?? {};
+        var da = c['defaultAddress'] ?? {};
+
+        // 1. Resolve Identity
+        String firstName = (sa['firstName'] ??
+                ba['firstName'] ??
+                da['firstName'] ??
+                c['firstName'] ??
+                "")
+            .toString()
+            .trim();
+        String lastName = (sa['lastName'] ??
+                ba['lastName'] ??
+                da['lastName'] ??
+                c['lastName'] ??
+                "")
+            .toString()
+            .trim();
+        String fullName = (sa['name'] ??
+                ba['name'] ??
+                (firstName.isNotEmpty ? "$firstName $lastName" : ""))
+            .toString()
+            .trim();
+        String phone =
+            (sa['phone'] ?? ba['phone'] ?? da['phone'] ?? c['phone'] ?? "")
+                .toString()
+                .trim();
+        String zip =
+            (sa['zip'] ?? ba['zip'] ?? da['zip'] ?? "").toString().trim();
+        String company = (sa['company'] ?? ba['company'] ?? da['company'] ?? "")
+            .toString()
+            .trim();
+
+        // 2. REST FALLBACK: If identity is blocked (redacted/null), try the REST door
+        if (fullName.isEmpty || phone.isEmpty || zip.isEmpty) {
+          try {
+            final numericId = gid.split('/').last;
+            final restRes = await _getData(link: "orders/$numericId");
+            if (restRes['order'] != null) {
+              var ro = restRes['order'];
+              var rsa = ro['shipping_address'] ?? ro['billing_address'] ?? {};
+              var rc = ro['customer'] ?? {};
+
+              if (fullName.isEmpty || fullName == "Customer") {
+                fullName = rsa['name'] ??
+                    '${rc['first_name'] ?? ''} ${rc['last_name'] ?? ''}'.trim();
+              }
+              if (phone.isEmpty) phone = rsa['phone'] ?? rc['phone'] ?? "";
+              if (zip.isEmpty) zip = rsa['zip'] ?? "";
+              if (company.isEmpty) company = rsa['company'] ?? "";
+
+              // Updates address parts if needed
+              if (sa['address1'] == null) sa['address1'] = rsa['address1'];
+              if (sa['address2'] == null) sa['address2'] = rsa['address2'];
+              if (sa['city'] == null) sa['city'] = rsa['city'];
+              if (sa['province'] == null) sa['province'] = rsa['province'];
+              if (sa['country'] == null) sa['country'] = rsa['country'];
+              if (o['statusPageUrl'] == null)
+                o['statusPageUrl'] = ro['order_status_url'];
+
+              // Map REST fulfillments to GraphQL-like nodes for unified parsing
+              if (o['fulfillments'] == null && ro['fulfillments'] != null) {
+                o['fulfillments'] = {
+                  'nodes': (ro['fulfillments'] as List)
+                      .map((rf) => {
+                            'id': rf['id'],
+                            'shipmentStatus': rf['shipment_status'],
+                            'trackingInfo': [
+                              {
+                                'number': rf['tracking_number'],
+                                'url': rf['tracking_url'],
+                                'company': rf['tracking_company'],
+                              }
+                            ]
+                          })
+                      .toList()
+                };
+              }
+            }
+          } catch (e) {
+            debugPrint("REST Fallback Error: $e");
+          }
+        }
+
+        if (fullName.isEmpty) fullName = "Customer";
+
+        // 3. Resolve Location
+        String a1 = (sa['address1'] ?? ba['address1'] ?? da['address1'] ?? "")
+            .toString()
+            .trim();
+        String a2 = (sa['address2'] ?? ba['address2'] ?? da['address2'] ?? "")
+            .toString()
+            .trim();
+        String city =
+            (sa['city'] ?? ba['city'] ?? da['city'] ?? "").toString().trim();
+        String prov = (sa['province'] ?? ba['province'] ?? da['province'] ?? "")
+            .toString()
+            .trim();
+        String country = (sa['country'] ?? ba['country'] ?? da['country'] ?? "")
+            .toString()
+            .trim();
+
+        // Build COMPLETE composite address string
+        String addr = [
+          fullName,
+          phone.isNotEmpty ? phone : null,
+          company.isNotEmpty ? company : null,
+          a1.isNotEmpty ? a1 : null,
+          a2.isNotEmpty ? a2 : null,
+          city.isNotEmpty ? city : null,
+          prov.isNotEmpty ? prov : null,
+          zip.isNotEmpty ? zip : null,
+          country.isNotEmpty ? country : null,
+        ].where((e) => e != null && e.toString().trim().isNotEmpty).join(", ");
+
+        if (addr.length < 15 && zip.isEmpty) {
+          addr = "No shipping address provided";
+        }
+
+        final lineItemsMapped = (o['lineItems']?['nodes'] as List? ?? [])
+            .map((li) => {
+                  'title': li['title'],
+                  'quantity': li['quantity'],
+                  'price': li['originalUnitPriceSet']?['presentmentMoney']
+                          ?['amount']
+                      ?.toString(),
+                  'variant_title': li['variantTitle'],
+                  'image': li['image']?['url'] ?? '',
+                })
+            .toList();
+
+        finalData = {
+          'id': o['id'],
+          'order_number': o['name']?.toString().replaceAll('#', '') ?? 'N/A',
+          'created_at': o['createdAt'],
+          'total_price':
+              o['totalPriceSet']?['presentmentMoney']?['amount']?.toString(),
+          'subtotal_price':
+              o['subtotalPriceSet']?['presentmentMoney']?['amount']?.toString(),
+          'total_tax':
+              o['totalTaxSet']?['presentmentMoney']?['amount']?.toString(),
+          'total_shipping': o['totalShippingPriceSet']?['presentmentMoney']
+                  ?['amount']
+              ?.toString(),
+          'shipping_address': addr,
+          'order_status_url': o['statusPageUrl']?.toString(),
+          'customer_first_name': firstName,
+          'customer_last_name': lastName,
+          'customer_phone': phone,
+          'fulfillment_status': o['displayFulfillmentStatus']?.toLowerCase(),
+          'financial_status': o['displayFinancialStatus']?.toLowerCase(),
+          'cancelled_at': o['cancelledAt'],
+          'confirmed': o['confirmed'] ?? true,
+          'fulfillments': (o['fulfillments']?['nodes'] as List? ?? []).map((f) {
+            var ti = (f['trackingInfo'] as List? ?? []).firstOrNull ?? {};
             return {
-              'title': li['title'],
-              'quantity': 1,
-              'price': li['originalUnitPrice'],
-              'variant_title': li['variantTitle'],
-              'image': imageUrl,
+              'id': f['id'],
+              'shipment_status': f['shipmentStatus'],
+              'tracking_number': ti['number'],
+              'tracking_url': ti['url'],
+              'tracking_company': ti['company'],
             };
-          }).toList();
+          }).toList(),
+          'line_items': lineItemsMapped,
+        };
+
+        // Fallback: If subtotal_price is missing or 0, calculate from line items
+        if (finalData['subtotal_price'] == null ||
+            finalData['subtotal_price'] == '0' ||
+            finalData['subtotal_price'] == '0.0' ||
+            finalData['subtotal_price'] == '0.00') {
+          double calculatedSubtotal = 0;
+          for (var item in lineItemsMapped) {
+            double price =
+                double.tryParse(item['price']?.toString() ?? '0') ?? 0;
+            int qty = int.tryParse(item['quantity']?.toString() ?? '0') ?? 0;
+            calculatedSubtotal += (price * qty);
+          }
+          finalData['subtotal_price'] = calculatedSubtotal.toStringAsFixed(2);
         }
       }
+      return finalData;
     } catch (e) {
-      debugPrint("getOrderDetails Error: $e");
+      debugPrint("getOrderFullDetails Overall Error: $e");
     }
-    return [];
+    return {};
   }
 }
 
@@ -240,7 +525,7 @@ class Shopify {
     'X-Shopify-Storefront-Access-Token': Constants.storefrontAccessToken,
   };
 
-  static Future<Map<String, dynamic>> _getData(BuildContext? context,
+  static Future<Map<String, dynamic>> getGraphQLData(BuildContext? context,
       {required String body,
       String? version,
       String? forcedLang,
@@ -306,7 +591,7 @@ class Shopify {
     String? cursor,
   }) async {
     try {
-      var res = await _getData(
+      var res = await getGraphQLData(
         context,
         body: '''
           collection(id: "$_colIdPre$id") {
@@ -411,7 +696,7 @@ class Shopify {
       final fullId = variantId.contains(_proVarIdPre)
           ? variantId
           : "$_proVarIdPre$variantId";
-      var res = await _getData(
+      var res = await getGraphQLData(
         context,
         body: '''
           node(id: "$fullId") {
@@ -487,7 +772,7 @@ class Shopify {
     BuildContext context,
   ) async {
     try {
-      var res = await _getData(
+      var res = await getGraphQLData(
         context,
         body: '''
           localization {
@@ -519,7 +804,7 @@ class Shopify {
   static Future<List<ProductModel>> getProductsRecommend(BuildContext context,
       {required String id}) async {
     try {
-      var res = await _getData(
+      var res = await getGraphQLData(
         context,
         body: '''
             productRecommendations(productId: "$_proIdPre$id") {
@@ -604,7 +889,7 @@ class Shopify {
     String? forcedLang,
   }) async {
     try {
-      var res = await _getData(
+      var res = await getGraphQLData(
         context,
         forcedLang: forcedLang,
         body: '''
@@ -657,7 +942,7 @@ class Shopify {
   static Future<List<CategoriesModel>> getBannerCollections(
       BuildContext context) async {
     try {
-      var res = await _getData(
+      var res = await getGraphQLData(
         context,
         body: '''
             b1: collection(handle: "homepage-banner-1") { id title handle description image { url altText } }
@@ -722,7 +1007,7 @@ class Shopify {
         }
       ''';
 
-      var res = await _getData(
+      var res = await getGraphQLData(
         context,
         body: query,
         version: "2024-01",
@@ -751,7 +1036,7 @@ class Shopify {
     bool isSugg = false,
   }) async {
     try {
-      var res = await _getData(
+      var res = await getGraphQLData(
         context,
         body: '''
             search(first:${isSugg ? 10 : 50},  query: "$query") {
@@ -850,7 +1135,7 @@ class Shopify {
           }
         }
       ''';
-        var res = await _getData(
+        var res = await getGraphQLData(
           context,
           body: query,
           version: "2024-01",

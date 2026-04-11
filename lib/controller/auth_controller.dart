@@ -50,7 +50,10 @@ class AuthController {
     required String address2,
     required String city,
     required String state,
+    String? firstName,
+    String? lastName,
     String? name,
+    String? phone,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final address = {
@@ -59,7 +62,9 @@ class AuthController {
       'address2': address2,
       'city': city,
       'state': state,
-      'name': name ?? '',
+      'first_name': firstName ?? '',
+      'last_name': lastName ?? '',
+      'phone': phone ?? '',
     };
 
     List<Map<String, String>> current = await getStoredAddresses();

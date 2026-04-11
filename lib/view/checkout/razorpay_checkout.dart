@@ -140,23 +140,36 @@ class _RazorpayCheckoutState extends State<RazorpayCheckout> {
         'X-Shopify-Access-Token': Constants.shopifyAccessToken,
       };
 
+      String _stripGid(dynamic id) {
+        if (id == null) return '';
+        final s = id.toString();
+        if (s.contains('/')) return s.split('/').last;
+        return s;
+      }
+
       // Build line items from cart
       final lineItems = widget.cartItems.map((item) => {
-        "variant_id": item['variant_id'] ?? item['id'],
+        "variant_id": int.tryParse(_stripGid(item['variant_id'] ?? item['id'])) ?? 0,
         "quantity": item['quantity'] ?? item['qty'] ?? 1,
         "price": item['price']?.toString() ?? '0',
       }).toList();
 
-      // Get saved Shopify customer ID
-      final customerId = await AuthController.getShopifyCustomerId();
+      final sa = widget.shippingAddress;
+      final firstName = (sa['first_name'] ?? '').toString().trim();
+      final lastName = (sa['last_name'] ?? '').toString().trim();
+      
+      final safeFirst = firstName.isNotEmpty ? firstName : "Customer";
+      final safeLast = lastName.isNotEmpty ? lastName : ".";
+      final customerIdRaw = await AuthController.getShopifyCustomerId();
+      final customerId = _stripGid(customerIdRaw);
 
       final orderPayload = {
         "order": {
           "line_items": lineItems,
           "financial_status": "paid",
           "fulfillment_status": null,
-          "shipping_address": widget.shippingAddress,
-          "billing_address": widget.shippingAddress,
+          "shipping_address": sa,
+          "billing_address": sa,
           "discount_codes": [
             {
               "code": Constants.payOnlineDiscountCode,
@@ -179,7 +192,12 @@ class _RazorpayCheckoutState extends State<RazorpayCheckout> {
               "source_name": razorpayPaymentId,
             }
           ],
-          if (customerId != null) "customer": {"id": int.tryParse(customerId)},
+          if (customerId != null)
+            "customer": {
+              "id": int.tryParse(customerId),
+              "first_name": safeFirst,
+              "last_name": safeLast,
+            },
           "note": "Paid via Razorpay - TxID: $razorpayPaymentId",
           "tags": "mobile-app,razorpay",
           "send_receipt": true,

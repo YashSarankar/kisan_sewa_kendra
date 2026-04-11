@@ -24,7 +24,8 @@ class AddressView extends StatefulWidget {
 
 class _AddressViewState extends State<AddressView> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _pincodeController = TextEditingController();
   final _address1Controller = TextEditingController();
@@ -60,7 +61,11 @@ class _AddressViewState extends State<AddressView> {
         } else {
           _isAddingAddress = true;
           // Pre-fill name and phone for the first address
-          if (name != null) _nameController.text = name;
+          if (name != null && name.isNotEmpty) {
+             final parts = name.split(' ');
+             _firstNameController.text = parts.first;
+             _lastNameController.text = parts.length > 1 ? parts.sublist(1).join(' ') : '';
+          }
           if (phone != null) _phoneController.text = phone;
         }
       });
@@ -69,7 +74,8 @@ class _AddressViewState extends State<AddressView> {
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _phoneController.dispose();
     _pincodeController.dispose();
     _address1Controller.dispose();
@@ -189,7 +195,8 @@ class _AddressViewState extends State<AddressView> {
       'address2': _address2Controller.text.trim(),
       'city': _cityController.text.trim(),
       'state': _stateController.text.trim(),
-      'name': _nameController.text.trim(),
+      'first_name': _firstNameController.text.trim(),
+      'last_name': _lastNameController.text.trim(),
       'phone': _phoneController.text.trim(),
     };
 
@@ -201,7 +208,9 @@ class _AddressViewState extends State<AddressView> {
       address2: addr['address2']!,
       city: addr['city']!,
       state: addr['state']!,
-      name: addr['name'],
+      firstName: addr['first_name'],
+      lastName: addr['last_name'],
+      phone: addr['phone'],
     );
 
     // Refresh list and select the new address
@@ -317,17 +326,32 @@ class _AddressViewState extends State<AddressView> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                _buildField(
-                  controller: _nameController,
-                  label: 'Full Name',
-                  hint: 'Enter your full name',
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty)
-                      return 'Please enter your name';
-                    if (v.trim().length < 3)
-                      return 'Name must be at least 3 characters';
-                    return null;
-                  },
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildField(
+                        controller: _firstNameController,
+                        label: 'First Name',
+                        hint: 'Yash',
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) return 'Required';
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildField(
+                        controller: _lastNameController,
+                        label: 'Last Name',
+                        hint: 'Sarankar',
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) return 'Required';
+                          return null;
+                        },
+                      ),
+                    ),
+                  ],
                 ),
                 _buildField(
                   controller: _phoneController,
@@ -441,7 +465,8 @@ class _AddressViewState extends State<AddressView> {
                     TextButton.icon(
                       onPressed: () {
                         setState(() {
-                          _nameController.clear();
+                          _firstNameController.clear();
+                          _lastNameController.clear();
                           _address1Controller.clear();
                           _address2Controller.clear();
                           _pincodeController.clear();

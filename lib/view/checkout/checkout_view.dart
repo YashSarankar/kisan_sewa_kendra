@@ -94,8 +94,18 @@ class _CheckoutViewState extends State<CheckoutView> {
 
   void _navigateToRazorpay() {
     final addressData = widget.selectedAddress;
+    final firstName = addressData['first_name'] ??
+        (addressData['name'] ?? '').trim().split(' ').first;
+    final lastName = addressData['last_name'] ??
+        ((addressData['name'] ?? '').trim().split(' ').length > 1
+            ? (addressData['name'] ?? '').trim().split(' ').sublist(1).join(' ')
+            : '.');
+    final fullName = addressData['name'] ?? '$firstName $lastName';
+
     final shopifyAddress = {
-      'name': addressData['name'],
+      'first_name': firstName,
+      'last_name': lastName,
+      'name': fullName,
       'phone': addressData['phone'] ?? '',
       'address1': addressData['address1'],
       'address2': addressData['address2'],
@@ -115,7 +125,7 @@ class _CheckoutViewState extends State<CheckoutView> {
           cartItems: _checkoutCartItems,
           totalValue: razorpayTotal,
           shippingAddress: shopifyAddress,
-          customerName: addressData['name'] ?? '',
+          customerName: fullName,
           customerPhone: addressData['phone'] ?? '',
           discountCode: _appliedDiscount?['code'],
           discountAmount: _discountValue,
@@ -128,9 +138,18 @@ class _CheckoutViewState extends State<CheckoutView> {
     setState(() => _isProcessingCod = true);
     try {
       final addressData = widget.selectedAddress;
+      final firstName = (addressData['first_name'] ?? '').trim();
+      final lastName = (addressData['last_name'] ?? '').trim();
+      final phone = (addressData['phone'] ?? '').trim();
+
+      final safeFirst = firstName.isNotEmpty ? firstName : "Customerrr";
+      final safeLast = lastName.isNotEmpty ? lastName : "customer";
+
       final address = {
-        'name': addressData['name'],
-        'phone': addressData['phone'] ?? '',
+        'first_name': safeFirst,
+        'last_name': safeLast,
+        'name': '$safeFirst ${safeLast == "." ? "" : safeLast}'.trim(),
+        if (phone.isNotEmpty) 'phone': phone,
         'address1': addressData['address1'],
         'address2': addressData['address2'],
         'city': addressData['city'],
@@ -140,21 +159,25 @@ class _CheckoutViewState extends State<CheckoutView> {
         'country_code': 'IN',
       };
 
-      const String baseUrl = "https://3b7f20-3.myshopify.com/admin/api/2024-10";
-      Map<String, String> headers = {
-        'Content-Type': 'application/json',
-        'X-Shopify-Access-Token': Constants.shopifyAccessToken,
-      };
+      String _stripGid(dynamic id) {
+        if (id == null) return '';
+        final s = id.toString();
+        if (s.contains('/')) return s.split('/').last;
+        return s;
+      }
 
       final lineItems = _checkoutCartItems
           .map((item) => {
-                "variant_id": item['variant_id'] ?? item['id'],
+                "variant_id":
+                    int.tryParse(_stripGid(item['variant_id'] ?? item['id'])) ??
+                        0,
                 "quantity": item['quantity'] ?? item['qty'] ?? 1,
                 "price": item['price']?.toString() ?? '0',
               })
           .toList();
 
-      final customerId = await AuthController.getShopifyCustomerId();
+      final customerIdRaw = await AuthController.getShopifyCustomerId();
+      final customerId = _stripGid(customerIdRaw);
 
       final orderPayload = {
         "order": {
@@ -163,25 +186,35 @@ class _CheckoutViewState extends State<CheckoutView> {
           "fulfillment_status": null,
           "shipping_address": address,
           "billing_address": address,
-          "gateway": "Cash on Delivery (COD)",
-          if (customerId != null) "customer": {"id": int.tryParse(customerId)},
+          "gateway": "manual",
+          if (customerId.isNotEmpty)
+            "customer": {
+              "id": int.tryParse(customerId),
+              "first_name": safeFirst,
+              "last_name": safeLast,
+            },
           "note": "Cash on Delivery",
-          "tags": "mobile-app, cod",
+          "tags": "mobile-app,cod",
           "send_receipt": true,
+          "use_customer_default_address": false,
           if (_appliedDiscount != null)
             "discount_codes": [
               {
                 "code": _appliedDiscount!['code'],
                 "amount": _discountValue.toStringAsFixed(2),
-                "type": _appliedDiscount!['type'],
+                "type": "fixed_amount"
               }
             ],
         }
       };
 
+      const String baseUrl = "https://3b7f20-3.myshopify.com/admin/api/2024-10";
       final res = await http.post(
         Uri.parse('$baseUrl/orders.json'),
-        headers: headers,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Access-Token': Constants.shopifyAccessToken,
+        },
         body: jsonEncode(orderPayload),
       );
 
@@ -208,6 +241,7 @@ class _CheckoutViewState extends State<CheckoutView> {
           );
         }
       } else {
+        debugPrint("Shopify COD Error: ${res.body}");
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -217,11 +251,10 @@ class _CheckoutViewState extends State<CheckoutView> {
         }
       }
     } catch (e) {
+      debugPrint("COD Error: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Error placing order: $e'),
-              backgroundColor: Colors.red.shade700),
+          const SnackBar(content: Text('An error occurred. Please try again.')),
         );
       }
     } finally {

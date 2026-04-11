@@ -13,6 +13,14 @@ class OrderModel {
   final bool confirmed;
   final List<LineItem> lineItems;
   final List<Fulfillment> fulfillments;
+  final String? subtotalPrice;
+  final String? totalTax;
+  final String? totalShipping;
+  final String? shippingAddress;
+  final String? firstName;
+  final String? lastName;
+  final String? customerPhone;
+  final String? orderStatusUrl;
 
   OrderModel({
     required this.id,
@@ -27,7 +35,21 @@ class OrderModel {
     required this.confirmed,
     required this.lineItems,
     required this.fulfillments,
+    this.subtotalPrice,
+    this.totalTax,
+    this.totalShipping,
+    this.shippingAddress,
+    this.firstName,
+    this.lastName,
+    this.customerPhone,
+    this.orderStatusUrl,
   });
+
+  String get customerName {
+    if ((firstName == null || firstName!.isEmpty) &&
+        (lastName == null || lastName!.isEmpty)) return "Customer";
+    return '${firstName ?? ''} ${lastName ?? ''}'.trim();
+  }
 
   String get trackingStatus {
     if (cancelledAt != null) return 'Cancelled';
@@ -93,6 +115,22 @@ class OrderModel {
   }
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
+    List<LineItem> items = (json['line_items'] as List? ?? [])
+        .map((item) => LineItem.fromJson(item))
+        .toList();
+
+    String? subtotal = json['subtotal_price']?.toString();
+    if (subtotal == null ||
+        subtotal == '0' ||
+        subtotal == '0.0' ||
+        subtotal == '0.00') {
+      double calculated = 0;
+      for (var item in items) {
+        calculated += (double.tryParse(item.price) ?? 0) * item.quantity;
+      }
+      subtotal = calculated.toStringAsFixed(2);
+    }
+
     return OrderModel(
       id: json['id'].toString(),
       orderNumber: json['order_number'].toString(),
@@ -104,12 +142,18 @@ class OrderModel {
       cancelledAt: json['cancelled_at'],
       closedAt: json['closed_at'],
       confirmed: json['confirmed'] ?? false,
-      lineItems: (json['line_items'] as List? ?? [])
-          .map((item) => LineItem.fromJson(item))
-          .toList(),
+      lineItems: items,
       fulfillments: (json['fulfillments'] as List? ?? [])
           .map((f) => Fulfillment.fromJson(f))
           .toList(),
+      subtotalPrice: subtotal,
+      totalTax: json['total_tax']?.toString(),
+      totalShipping: json['total_shipping']?.toString(),
+      shippingAddress: json['shipping_address']?.toString(),
+      firstName: json['customer_first_name']?.toString(),
+      lastName: json['customer_last_name']?.toString(),
+      customerPhone: json['customer_phone']?.toString(),
+      orderStatusUrl: json['order_status_url']?.toString(),
     );
   }
 }
@@ -146,6 +190,9 @@ class LineItem {
   final String price;
   final String? variantTitle;
   final String? image;
+  final String? variantId;
+  final String? productId;
+  final String? totalDiscount;
 
   LineItem({
     required this.title,
@@ -153,6 +200,9 @@ class LineItem {
     required this.price,
     this.variantTitle,
     this.image,
+    this.variantId,
+    this.productId,
+    this.totalDiscount,
   });
 
   factory LineItem.fromJson(Map<String, dynamic> json) {
@@ -188,6 +238,9 @@ class LineItem {
       price: json['price']?.toString() ?? '0.00',
       variantTitle: json['variant_title'],
       image: img,
+      variantId: json['variant_id']?.toString(),
+      productId: json['product_id']?.toString(),
+      totalDiscount: json['total_discount']?.toString(),
     );
   }
 }

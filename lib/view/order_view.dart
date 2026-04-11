@@ -8,6 +8,9 @@ import 'order_detail_view.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kisan_sewa_kendra/components/network_image.dart';
 import 'support_view.dart';
+import '../controller/cart_controller.dart';
+import '../controller/routers.dart';
+import 'cart_view.dart';
 
 class OrderView extends StatefulWidget {
   const OrderView({super.key});
@@ -426,9 +429,10 @@ class _OrderViewState extends State<OrderView>
                     children: [
                       Expanded(
                         child: _buildActionButton(
-                          label: "Track Order",
-                          icon: Icons.map_outlined,
-                          color: Constants.baseColor,
+                          label: "Details",
+                          icon: Icons.info_outline,
+                          color: Colors.grey.withOpacity(0.1),
+                          textColor: Colors.grey[500]!,
                           onPressed: () {
                             Navigator.push(
                               context,
@@ -436,6 +440,38 @@ class _OrderViewState extends State<OrderView>
                                   builder: (_) =>
                                       OrderDetailView(order: order)),
                             );
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildActionButton(
+                          label: "Reorder",
+                          icon: Icons.refresh_rounded,
+                          color: Constants.baseColor,
+                          onPressed: () async {
+                            final scaffoldMessenger =
+                                ScaffoldMessenger.of(context);
+                            for (var item in order.lineItems) {
+                              if (item.variantId != null) {
+                                await CartController.addToCart(
+                                  variantId: item.variantId!,
+                                  productId: item.productId,
+                                  qty: item.quantity,
+                                  title: item.title,
+                                  price: item.price,
+                                  image: item.image,
+                                  variantTitle: item.variantTitle ?? '',
+                                );
+                              }
+                            }
+                            scaffoldMessenger.showSnackBar(
+                              const SnackBar(
+                                  content: Text("Items added to bag")),
+                            );
+                            if (mounted) {
+                              Routers.goTO(context, toBody: const CartView());
+                            }
                           },
                         ),
                       ),
@@ -553,13 +589,14 @@ class _OrderViewState extends State<OrderView>
     required String label,
     required IconData icon,
     required Color color,
+    Color textColor = Colors.white,
     required VoidCallback onPressed,
   }) {
     return ElevatedButton.icon(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
         backgroundColor: color,
-        foregroundColor: Colors.white,
+        foregroundColor: textColor,
         elevation: 0,
         minimumSize: const Size(double.infinity, 40),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
