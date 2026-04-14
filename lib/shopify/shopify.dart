@@ -509,6 +509,75 @@ class ShopifyAPI {
     }
     return {};
   }
+
+  static Future<Map<String, dynamic>> createOrder({
+    String? customerId,
+    required List<Map<String, dynamic>> lineItems,
+    required Map<String, dynamic> shippingAddress,
+    required double totalAmount,
+    String? paymentId,
+    bool isCod = false,
+  }) async {
+    try {
+      final List<Map<String, dynamic>> cleanLineItems = lineItems.map((item) {
+        String vid = item['variant_id']?.toString() ?? '';
+        return {
+          "variant_id": int.parse(vid.split('/').last),
+          "quantity": item['quantity'],
+        };
+      }).toList();
+
+      final Map<String, dynamic> orderPayload = {
+        "line_items": cleanLineItems,
+        "financial_status": isCod ? "pending" : "paid",
+        "total_price": totalAmount.toStringAsFixed(2),
+        "currency": "INR",
+        "email": shippingAddress['email'] ?? "",
+        "phone": shippingAddress['phone'] ?? "",
+        "note_attributes": [
+          {"name": "payment_id", "value": paymentId ?? (isCod ? "COD" : "Online")},
+          {"name": "channel", "value": "Mobile App"}
+        ],
+        "shipping_address": {
+          "first_name": shippingAddress['name']?.toString().split(' ').first ?? '',
+          "last_name": shippingAddress['name']?.toString().split(' ').skip(1).join(' ') ?? '',
+          "address1": shippingAddress['address1'] ?? "",
+          "address2": shippingAddress['address2'] ?? "",
+          "city": shippingAddress['city'] ?? "",
+          "province": shippingAddress['state'] ?? "",
+          "zip": shippingAddress['pincode'] ?? "",
+          "phone": shippingAddress['phone'] ?? "",
+          "country": "India"
+        },
+        "inventory_behavior": "decrement_ignoring_policy",
+        "send_receipt": true,
+      };
+
+      if (customerId != null && customerId.isNotEmpty && customerId != "null") {
+        try {
+          final int cleanId = int.parse(customerId.split('/').last);
+          orderPayload["customer"] = {"id": cleanId};
+        } catch (_) {}
+      }
+
+      final res = await http.post(
+        Uri.parse("$_baseUrl/orders.json"),
+        headers: _header,
+        body: jsonEncode({"order": orderPayload}),
+      );
+
+      debugPrint("Shopify Create Order Status: ${res.statusCode}");
+
+      if (res.statusCode == 201) {
+        return jsonDecode(res.body);
+      } else {
+        debugPrint("Create Order Error ${res.statusCode}: ${res.body}");
+      }
+    } catch (e) {
+      debugPrint("createOrder Overall Error: $e");
+    }
+    return {};
+  }
 }
 
 class Shopify {

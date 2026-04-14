@@ -44,6 +44,11 @@ class AuthController {
     return prefs.getString(_keyShopifyId);
   }
 
+  static Future<String?> getSavedEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyEmail);
+  }
+
   static Future<void> saveAddress({
     required String pincode,
     required String address1,

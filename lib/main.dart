@@ -3,6 +3,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import 'package:google_fonts/google_fonts.dart';
+
 import 'controller/constants.dart';
 import 'firebase_options.dart';
 import 'utils/meta_events.dart';
@@ -57,6 +59,17 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Constants.baseColor),
         useMaterial3: true,
         scaffoldBackgroundColor: Colors.white,
+        textTheme: GoogleFonts.interTextTheme().copyWith(
+          displayLarge: GoogleFonts.outfit(fontWeight: FontWeight.w900),
+          displayMedium: GoogleFonts.outfit(fontWeight: FontWeight.w800),
+          displaySmall: GoogleFonts.outfit(fontWeight: FontWeight.w800),
+          headlineLarge: GoogleFonts.outfit(fontWeight: FontWeight.w800),
+          headlineMedium: GoogleFonts.outfit(fontWeight: FontWeight.w700),
+          headlineSmall: GoogleFonts.outfit(fontWeight: FontWeight.w700),
+          titleLarge: GoogleFonts.outfit(fontWeight: FontWeight.w700),
+          titleMedium: GoogleFonts.outfit(fontWeight: FontWeight.w600),
+          titleSmall: GoogleFonts.outfit(fontWeight: FontWeight.w600),
+        ),
         bottomNavigationBarTheme: BottomNavigationBarThemeData(
           backgroundColor: Colors.white,
           selectedItemColor: Constants.baseColor,

@@ -121,17 +121,22 @@ class _OrderSuccessViewState extends State<OrderSuccessView>
                       _buildDetailRow('Order Number', widget.orderNumber),
                       const SizedBox(height: 14),
                       _buildDetailRow(
-                        'Amount Pending',
+                        widget.paymentId == "Cash on Delivery"
+                            ? 'Amount Pending'
+                            : 'Amount Paid',
                         '₹${widget.totalAmount.toStringAsFixed(2)}',
                         isHighlight: true,
                       ),
                       const SizedBox(height: 14),
                       _buildDetailRow(
                         'Payment Method',
-                        'Cash on Delivery',
+                        widget.paymentId == "Cash on Delivery"
+                            ? 'Cash on Delivery'
+                            : 'Online Payment',
                         isSmall: true,
                       ),
-                      if (widget.paymentId.isNotEmpty) ...[
+                      if (widget.paymentId != "Cash on Delivery" &&
+                          widget.paymentId != "Online") ...[
                         const SizedBox(height: 14),
                         _buildDetailRow('Payment ID', widget.paymentId,
                             isSmall: true),
