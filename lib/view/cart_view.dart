@@ -1234,27 +1234,28 @@ class _CartViewState extends State<CartView> {
     // More robust phone cleaning for Razorpay prefill
     if (contactPhone != null && contactPhone.isNotEmpty) {
       contactPhone = contactPhone.replaceAll(RegExp(r'[^\d]'), '');
-      
+
       // Remove leading '0' if present
       if (contactPhone.startsWith('0')) {
         contactPhone = contactPhone.substring(1);
       }
-      
+
       // Remove '91' prefix if it's already there and the rest is 10 digits
       if (contactPhone.startsWith('91') && contactPhone.length > 10) {
         contactPhone = contactPhone.substring(2);
       }
-      
-      // Force standard +91XXXXXXXXXX format
+
+      // Force digits-only format: 91XXXXXXXXXX (no +)
       if (contactPhone.length == 10) {
-        contactPhone = "+91$contactPhone";
-      } else if (!contactPhone.startsWith('+')) {
-        contactPhone = "+$contactPhone";
+        contactPhone = "91$contactPhone";
+      } else {
+        contactPhone = contactPhone.replaceAll('+', '');
       }
     }
 
     String? contactName = _selectedAddress?['name']?.toString() ??
         await AuthController.getSavedName();
+    if (contactName == null || contactName.isEmpty) contactName = "Customer";
 
     String? contactEmail = await AuthController.getSavedEmail();
     if (contactEmail == null || contactEmail.isEmpty) {
@@ -1266,21 +1267,23 @@ class _CartViewState extends State<CartView> {
       'key': Constants.razorpayKey,
       'amount': (finalTotal * 100).toInt(), // amount in paise
       'name': Constants.title,
-      'image': 'https://cdn.shopify.com/s/files/1/0627/9204/0601/files/logo.png',
+      'image':
+          'https://cdn.shopify.com/s/files/1/0627/9204/0601/files/logo.png',
       'description': 'Payment for Order',
       'prefill': {
-        'contact': contactPhone ?? '',
-        'name': contactName ?? '',
+        'contact': contactPhone ?? '', // Standard key
+        'phone': contactPhone ?? '', // Alias for some SDK versions
+        'name': contactName,
         'email': contactEmail,
       },
       'modal': {
         'confirm_close': true,
       }
     };
-    
+
     print("DEBUG: Razorpay Options --> $options");
     debugPrint("DEBUG: Razorpay Options --> $options");
-    
+
     try {
       _razorpay.open(options);
     } catch (e) {
