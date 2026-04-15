@@ -444,7 +444,8 @@ class _HomeState extends State<Home> {
                               return WidgetButton(
                                 onTap: () => Routers.goTO(context,
                                     toBody: CollectionView(
-                                        collectionId: cat.id.toString())),
+                                        collectionId: cat.id.toString(),
+                                        title: cat.title)),
                                 child: Container(
                                   decoration: BoxDecoration(
                                       color: Colors.white,

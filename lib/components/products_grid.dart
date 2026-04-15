@@ -14,6 +14,7 @@ class ProductsGrid extends StatefulWidget {
   final bool isFilter;
   final bool shrinkWrap;
   final List<String>? excludeIds; // To prevent duplicates
+  final Widget? header; // Optional scrollable header widget
 
   const ProductsGrid({
     super.key,
@@ -22,13 +23,14 @@ class ProductsGrid extends StatefulWidget {
     this.isFilter = false,
     this.shrinkWrap = true,
     this.excludeIds,
+    this.header,
   });
 
   @override
-  State<ProductsGrid> createState() => _ProductsGridState();
+  State<ProductsGrid> createState() => ProductsGridState();
 }
 
-class _ProductsGridState extends State<ProductsGrid>
+class ProductsGridState extends State<ProductsGrid>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -42,27 +44,44 @@ class _ProductsGridState extends State<ProductsGrid>
   List<ProductModel> _products = [], _fullProducts = [];
   bool _isLoading = true;
 
+  /// Public method to sort products from outside (e.g. CollectionView header)
+  void sortProducts(String sortType) {
+    setState(() {
+      if (sortType == "a-z") {
+        _products.sort((a, b) => a.title.compareTo(b.title));
+      } else if (sortType == "z-a") {
+        _products.sort((a, b) => b.title.compareTo(a.title));
+      } else {
+        _products = List.from(_fullProducts);
+      }
+    });
+  }
+
   Future<void> _init() async {
     if (!mounted) return;
     setState(() {
       _isLoading = true;
     });
-    
+
     final result = await Shopify.getProductsFromCollections(
       context,
       id: widget.id,
-      limit: widget.limit != null ? (widget.limit! + (widget.excludeIds?.length ?? 0)) : null,
+      limit: widget.limit != null
+          ? (widget.limit! + (widget.excludeIds?.length ?? 0))
+          : null,
     );
-    
+
     if (mounted) {
       setState(() {
-        List<ProductModel> list = (result['product'] as List<dynamic>?)?.cast<ProductModel>() ?? <ProductModel>[];
-        
+        List<ProductModel> list =
+            (result['product'] as List<dynamic>?)?.cast<ProductModel>() ??
+                <ProductModel>[];
+
         // Filter out excluded IDs
         if (widget.excludeIds != null) {
           list = list.where((p) => !widget.excludeIds!.contains(p.id)).toList();
         }
-        
+
         // Apply limit after exclusion
         if (widget.limit != null && list.length > widget.limit!) {
           list = list.sublist(0, widget.limit);
@@ -81,13 +100,15 @@ class _ProductsGridState extends State<ProductsGrid>
 
     Widget grid = GridView.builder(
       shrinkWrap: widget.shrinkWrap,
-      physics: widget.shrinkWrap ? const NeverScrollableScrollPhysics() : const BouncingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      physics: widget.shrinkWrap
+          ? const NeverScrollableScrollPhysics()
+          : const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        crossAxisSpacing: 14,
-        mainAxisSpacing: 14,
-        childAspectRatio: 0.61, // Adjusted for rating stars
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 0.65,
       ),
       itemCount: _isLoading ? (widget.limit ?? 4) : _products.length,
       itemBuilder: (context, index) {
@@ -102,11 +123,40 @@ class _ProductsGridState extends State<ProductsGrid>
     );
 
     if (!widget.shrinkWrap) {
+      // When a header is provided, use CustomScrollView so header scrolls with grid
+      if (widget.header != null) {
+        return CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            SliverToBoxAdapter(child: widget.header!),
+            if (widget.isFilter) SliverToBoxAdapter(child: _buildSortHeader()),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 0.65,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    if (_isLoading) return _buildShimmerCard();
+                    return ProductCard(product: _products[index]);
+                  },
+                  childCount:
+                      _isLoading ? (widget.limit ?? 4) : _products.length,
+                ),
+              ),
+            ),
+          ],
+        );
+      }
       if (widget.isFilter) {
         return Column(
           children: [
             _buildSortHeader(),
-            Expanded(child: grid), 
+            Expanded(child: grid),
           ],
         );
       }
@@ -116,6 +166,7 @@ class _ProductsGridState extends State<ProductsGrid>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        if (widget.header != null) widget.header!,
         if (widget.isFilter) _buildSortHeader(),
         grid,
       ],
@@ -129,12 +180,18 @@ class _ProductsGridState extends State<ProductsGrid>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          const Text("Sort By", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black54)),
+          const Text("Sort By",
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black54)),
           const SizedBox(width: 4),
           PopupMenuButton<String>(
             elevation: 8,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            icon: Icon(Icons.swap_vert_rounded, color: Constants.baseColor, size: 22),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            icon: Icon(Icons.swap_vert_rounded,
+                color: Constants.baseColor, size: 22),
             onSelected: (value) {
               setState(() {
                 if (value == "a-z") {
@@ -147,8 +204,10 @@ class _ProductsGridState extends State<ProductsGrid>
               });
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(value: "a-z", child: Text("Alphabetically A-Z")),
-              const PopupMenuItem(value: "z-a", child: Text("Alphabetically Z-A")),
+              const PopupMenuItem(
+                  value: "a-z", child: Text("Alphabetically A-Z")),
+              const PopupMenuItem(
+                  value: "z-a", child: Text("Alphabetically Z-A")),
             ],
           ),
         ],
@@ -197,11 +256,14 @@ class ProductCard extends StatelessWidget {
 
   VariantModel? _minPriceVariant() {
     if (product.variants.isEmpty) return null;
-    final available = product.variants.where((v) => v.inventoryQuantity > 0).toList();
+    final available =
+        product.variants.where((v) => v.inventoryQuantity > 0).toList();
     if (available.isEmpty) return product.variants.first;
     available.sort((a, b) {
-      final aPrice = double.tryParse(a.price.replaceAll(RegExp(r'[^\d.]'), '')) ?? 0;
-      final bPrice = double.tryParse(b.price.replaceAll(RegExp(r'[^\d.]'), '')) ?? 0;
+      final aPrice =
+          double.tryParse(a.price.replaceAll(RegExp(r'[^\d.]'), '')) ?? 0;
+      final bPrice =
+          double.tryParse(b.price.replaceAll(RegExp(r'[^\d.]'), '')) ?? 0;
       return aPrice.compareTo(bPrice);
     });
     return available.first;
@@ -217,7 +279,9 @@ class ProductCard extends StatelessWidget {
           Icon(
             i < fullStars
                 ? Icons.star_rounded
-                : (i == fullStars && hasHalfStar ? Icons.star_half_rounded : Icons.star_outline_rounded),
+                : (i == fullStars && hasHalfStar
+                    ? Icons.star_half_rounded
+                    : Icons.star_outline_rounded),
             color: Colors.amber,
             size: 14,
           ),
@@ -245,7 +309,7 @@ class ProductCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
@@ -257,18 +321,19 @@ class ProductCard extends StatelessWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: WidgetButton(
-        onTap: () => Routers.goTO(context, toBody: ProductView(product: product)),
+        onTap: () =>
+            Routers.goTO(context, toBody: ProductView(product: product)),
         child: Stack(
           children: [
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  flex: 5,
+                  flex: 6,
                   child: Container(
                     width: double.infinity,
                     color: Colors.white,
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(10),
                     child: KskNetworkImage(
                       product.image ?? '',
                       width: double.infinity,
@@ -277,14 +342,14 @@ class ProductCard extends StatelessWidget {
                   ),
                 ),
                 Expanded(
-                  flex: 5,
+                  flex: 4,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                    padding: const EdgeInsets.fromLTRB(10, 6, 10, 10),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildRatingStars(fakeRating),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 3),
                         Text(
                           product.title,
                           maxLines: 2,
@@ -304,7 +369,8 @@ class ProductCard extends StatelessWidget {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                if (variant.compareAtPrice != null && variant.compareAtPrice!.isNotEmpty)
+                                if (variant.compareAtPrice != null &&
+                                    variant.compareAtPrice!.isNotEmpty)
                                   Text(
                                     "${Constants.inr}${variant.compareAtPrice}",
                                     style: const TextStyle(
@@ -316,7 +382,7 @@ class ProductCard extends StatelessWidget {
                                 Text(
                                   "${Constants.inr}${variant.price}",
                                   style: TextStyle(
-                                    fontSize: 16,
+                                    fontSize: 15,
                                     fontWeight: FontWeight.w800,
                                     color: Constants.baseColor,
                                   ),
@@ -329,7 +395,8 @@ class ProductCard extends StatelessWidget {
                                 color: Constants.baseColor.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: Icon(Icons.add_rounded, size: 20, color: Constants.baseColor),
+                              child: Icon(Icons.add_rounded,
+                                  size: 20, color: Constants.baseColor),
                             ),
                           ],
                         ),
@@ -347,10 +414,14 @@ class ProductCard extends StatelessWidget {
   }
 
   Widget _buildDiscountBadge(VariantModel variant) {
-    if (variant.compareAtPrice == null || variant.compareAtPrice!.isEmpty) return const SizedBox.shrink();
+    if (variant.compareAtPrice == null || variant.compareAtPrice!.isEmpty)
+      return const SizedBox.shrink();
     try {
-      double mrp = double.parse(variant.compareAtPrice!.replaceAll(Constants.inr, '').replaceAll(',', ''));
-      double sp = double.parse(variant.price.replaceAll(Constants.inr, '').replaceAll(',', ''));
+      double mrp = double.parse(variant.compareAtPrice!
+          .replaceAll(Constants.inr, '')
+          .replaceAll(',', ''));
+      double sp = double.parse(
+          variant.price.replaceAll(Constants.inr, '').replaceAll(',', ''));
       double per = (100 * (mrp - sp)) / mrp;
       if (per > 1) {
         return Positioned(
@@ -364,7 +435,10 @@ class ProductCard extends StatelessWidget {
             ),
             child: Text(
               "${per.toInt()}% OFF",
-              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800),
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800),
             ),
           ),
         );

@@ -93,21 +93,21 @@ class _KskAppbarState extends State<KskAppbar> {
         backgroundColor: Colors.white,
         centerTitle: false,
         toolbarHeight: 75,
+        leadingWidth: 60,
+        titleSpacing: 0,
         leading: Builder(
           builder: (context) => IconButton(
             padding: const EdgeInsets.only(left: 12),
-            icon: Icon(Icons.menu_rounded,
-                color: Constants.baseColor, size: 32), // Increased size
+            constraints: const BoxConstraints(),
+            icon:
+                Icon(Icons.menu_rounded, color: Constants.baseColor, size: 30),
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        title: Container(
-          alignment: Alignment.centerLeft, // Keep left, but center vertically
-          child: Image.asset(
-            "assets/logo-removebg-preview.png",
-            height: 50,
-            fit: BoxFit.contain,
-          ),
+        title: Image.asset(
+          "assets/logo-removebg-preview.png",
+          height: 60,
+          fit: BoxFit.contain,
         ),
         actions: [
           if (Constants.languageList.isNotEmpty && widget.title == null)

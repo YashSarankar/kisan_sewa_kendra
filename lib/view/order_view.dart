@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../controller/constants.dart';
@@ -20,14 +21,69 @@ class OrderView extends StatefulWidget {
 }
 
 class _OrderViewState extends State<OrderView>
-    with AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
   List<OrderModel> _orders = [];
   bool _isLoadingOrders = false;
+  Timer? _autoRefreshTimer;
+
+  /// Tracks the last successful fetch time to avoid redundant rapid calls.
+  DateTime? _lastFetchTime;
+
+  /// Minimum interval between auto-refreshes (30 seconds).
+  static const _refreshInterval = Duration(seconds: 30);
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _fetchOrders();
+    _startAutoRefresh();
+  }
+
+  @override
+  void dispose() {
+    _autoRefreshTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// Restart polling when app comes back to foreground.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _fetchOrders(); // immediate refresh on resume
+      _startAutoRefresh();
+    } else if (state == AppLifecycleState.paused) {
+      _autoRefreshTimer?.cancel(); // save battery while backgrounded
+    }
+  }
+
+  void _startAutoRefresh() {
+    _autoRefreshTimer?.cancel();
+    _autoRefreshTimer = Timer.periodic(_refreshInterval, (_) {
+      _fetchOrdersSilently();
+    });
+  }
+
+  /// Silent fetch — no loading indicator, just update data in-place.
+  Future<void> _fetchOrdersSilently() async {
+    // Debounce: skip if last fetch was very recent
+    if (_lastFetchTime != null &&
+        DateTime.now().difference(_lastFetchTime!) <
+            const Duration(seconds: 10)) {
+      return;
+    }
+    var customerId = await AuthController.getShopifyCustomerId();
+    if (customerId == null) return;
+    try {
+      final orderData = await ShopifyAPI.getCustomerOrders(customerId);
+      if (mounted) {
+        setState(() {
+          _orders = orderData.map((e) => OrderModel.fromJson(e)).toList();
+          _lastFetchTime = DateTime.now();
+        });
+      }
+    } catch (_) {}
   }
 
   Future<void> _fetchOrders() async {
@@ -47,6 +103,7 @@ class _OrderViewState extends State<OrderView>
       if (mounted) {
         setState(() {
           _orders = orderData.map((e) => OrderModel.fromJson(e)).toList();
+          _lastFetchTime = DateTime.now();
         });
       }
     } catch (e) {
@@ -410,12 +467,14 @@ class _OrderViewState extends State<OrderView>
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: () {
-              Navigator.push(
+            onTap: () async {
+              await Navigator.push(
                 context,
                 MaterialPageRoute(
                     builder: (_) => OrderDetailView(order: order)),
               );
+              // Refresh orders when returning from detail view
+              _fetchOrdersSilently();
             },
             child: Padding(
               padding: const EdgeInsets.all(14),
@@ -476,13 +535,15 @@ class _OrderViewState extends State<OrderView>
                           icon: Icons.info_outline,
                           color: Colors.grey.withOpacity(0.1),
                           textColor: Colors.grey[500]!,
-                          onPressed: () {
-                            Navigator.push(
+                          onPressed: () async {
+                            await Navigator.push(
                               context,
                               MaterialPageRoute(
                                   builder: (_) =>
                                       OrderDetailView(order: order)),
                             );
+                            // Refresh orders when returning from detail view
+                            _fetchOrdersSilently();
                           },
                         ),
                       ),

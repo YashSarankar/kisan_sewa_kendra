@@ -245,8 +245,7 @@ class _CategoriesState extends State<Categories>
         Routers.goTO(
           context,
           toBody: CollectionView(
-            collectionId: category.id.toString(),
-          ),
+              collectionId: category.id.toString(), title: category.title),
         );
       },
       child: Container(
