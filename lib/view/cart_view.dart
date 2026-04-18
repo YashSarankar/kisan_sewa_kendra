@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:kisan_sewa_kendra/l10n/app_localizations.dart';
 import 'package:kisan_sewa_kendra/shopify/shopify.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 
@@ -49,9 +50,13 @@ class _CartViewState extends State<CartView> {
 
   Future<void> _loadDefaultAddress() async {
     final addresses = await AuthController.getStoredAddresses();
-    if (addresses.isNotEmpty && mounted) {
+    if (mounted) {
       setState(() {
-        _selectedAddress = addresses.first;
+        if (addresses.isNotEmpty) {
+          _selectedAddress = addresses.first;
+        } else {
+          _selectedAddress = null;
+        }
       });
     }
   }
@@ -84,6 +89,51 @@ class _CartViewState extends State<CartView> {
         await CartController.updateQty(id, newQty);
       }
       await _init();
+    }
+  }
+
+  Future<void> _clearCart() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          AppLocalizations.of(context)!.clearCartConfirm,
+          style: GoogleFonts.outfit(fontWeight: FontWeight.w900),
+        ),
+        content: Text(
+          AppLocalizations.of(context)!.clearCartConfirmMsg,
+          style: GoogleFonts.inter(fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(
+              AppLocalizations.of(context)!.cancel,
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w700,
+                color: Colors.grey,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(
+              AppLocalizations.of(context)!.clearCart.toUpperCase(),
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w900,
+                color: Colors.redAccent,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await CartController.clearCart();
+      HapticFeedback.heavyImpact();
+      _init();
     }
   }
 
@@ -150,8 +200,10 @@ class _CartViewState extends State<CartView> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildSectionHeader("Farming Essentials",
-                                "${_cartItems.length} items"),
+                            _buildSectionHeader(
+                                AppLocalizations.of(context)!.farmingEssentials,
+                                AppLocalizations.of(context)!
+                                    .items(_cartItems.length)),
                             Padding(
                               padding: const EdgeInsets.only(top: 4, bottom: 8),
                               child: Row(
@@ -162,7 +214,7 @@ class _CartViewState extends State<CartView> {
                                           Constants.baseColor.withOpacity(0.4)),
                                   const SizedBox(width: 8),
                                   Text(
-                                    "Slide items left to quickly remove",
+                                    AppLocalizations.of(context)!.slideToDelete,
                                     style: GoogleFonts.inter(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w600,
@@ -252,7 +304,7 @@ class _CartViewState extends State<CartView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Checkout",
+                          AppLocalizations.of(context)!.checkout,
                           style: GoogleFonts.outfit(
                             fontSize: 18,
                             fontWeight: FontWeight.w900,
@@ -261,7 +313,7 @@ class _CartViewState extends State<CartView> {
                           ),
                         ),
                         Text(
-                          "KrishiKranti Organics • Agri-Business",
+                          "${AppLocalizations.of(context)!.appBrandName} • Agri-Business",
                           style: GoogleFonts.inter(
                             fontSize: 9,
                             fontWeight: FontWeight.w700,
@@ -272,6 +324,23 @@ class _CartViewState extends State<CartView> {
                       ],
                     ),
                   ),
+                  if (_cartItems.isNotEmpty)
+                    TextButton(
+                      onPressed: _clearCart,
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Text(
+                        AppLocalizations.of(context)!.clearCart.toUpperCase(),
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.redAccent,
+                        ),
+                      ),
+                    ),
                 ],
               ),
               const SizedBox(height: 10),
@@ -300,11 +369,12 @@ class _CartViewState extends State<CartView> {
   Widget _buildProgressSteps() {
     return Row(
       children: [
-        _stepItem("Cart", true),
+        _stepItem(AppLocalizations.of(context)!.cart, true),
         _stepDivider(true),
-        _stepItem("Details", _selectedAddress != null),
+        _stepItem(
+            AppLocalizations.of(context)!.address, _selectedAddress != null),
         _stepDivider(_selectedAddress != null),
-        _stepItem("Payment", false),
+        _stepItem(AppLocalizations.of(context)!.payment, false),
       ],
     );
   }
@@ -335,7 +405,7 @@ class _CartViewState extends State<CartView> {
         ),
         const SizedBox(height: 2),
         Text(
-          label.toUpperCase(),
+          label,
           style: GoogleFonts.inter(
             fontSize: 7,
             fontWeight: FontWeight.w900,
@@ -364,12 +434,11 @@ class _CartViewState extends State<CartView> {
                   size: 80, color: Constants.baseColor.withOpacity(0.2)),
             ),
             const SizedBox(height: 32),
-            Text("Basket is Empty",
+            Text(AppLocalizations.of(context)!.basketEmpty,
                 style: GoogleFonts.outfit(
                     fontSize: 24, fontWeight: FontWeight.w900)),
             const SizedBox(height: 12),
-            Text(
-                "Your basket is waiting for some fresh,\norganic goodness from our farms.",
+            Text(AppLocalizations.of(context)!.basketEmptyMsg,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                     fontSize: 14, color: Colors.grey[500], height: 1.5)),
@@ -385,7 +454,7 @@ class _CartViewState extends State<CartView> {
                       borderRadius: BorderRadius.circular(16)),
                   padding: const EdgeInsets.symmetric(vertical: 18),
                 ),
-                child: Text("START SHOPPING",
+                child: Text(AppLocalizations.of(context)!.startShopping,
                     style: GoogleFonts.outfit(
                         fontWeight: FontWeight.w900,
                         color: Colors.white,
@@ -486,7 +555,7 @@ class _CartViewState extends State<CartView> {
                 ),
                 Text(
                   item.variantTitle == "Default Title"
-                      ? "Pure Organic Quality"
+                      ? AppLocalizations.of(context)!.pureOrganicQuality
                       : item.variantTitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -620,8 +689,8 @@ class _CartViewState extends State<CartView> {
                 children: [
                   Text(
                     _appliedDiscount == null
-                        ? "Have a coupon code?"
-                        : "Coupon Applied",
+                        ? AppLocalizations.of(context)!.haveCoupon
+                        : AppLocalizations.of(context)!.couponApplied,
                     style: GoogleFonts.inter(
                       fontWeight: FontWeight.w800,
                       fontSize: 13,
@@ -630,8 +699,9 @@ class _CartViewState extends State<CartView> {
                   ),
                   Text(
                     _appliedDiscount == null
-                        ? "Save more on your order"
-                        : "${_appliedDiscount!['code']} applied successfully",
+                        ? AppLocalizations.of(context)!.saveMoreMsg
+                        : AppLocalizations.of(context)!
+                            .couponAppliedMsg(_appliedDiscount!['code']),
                     style: GoogleFonts.inter(
                       fontWeight: FontWeight.w600,
                       fontSize: 10,
@@ -680,7 +750,7 @@ class _CartViewState extends State<CartView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Bill Summary",
+            AppLocalizations.of(context)!.billSummary,
             style: GoogleFonts.outfit(
               fontWeight: FontWeight.w800,
               fontSize: 15,
@@ -688,10 +758,12 @@ class _CartViewState extends State<CartView> {
             ),
           ),
           const SizedBox(height: 12),
-          _summaryRow("Item Total", subtotal),
+          _summaryRow(AppLocalizations.of(context)!.itemTotal, subtotal),
           if (_appliedDiscount != null)
-            _summaryRow("Coupon Discount", -discount, isGreen: true),
-          _summaryRow("Delivery Fee", 0, isFree: true),
+            _summaryRow(AppLocalizations.of(context)!.couponDiscount, -discount,
+                isGreen: true),
+          _summaryRow(AppLocalizations.of(context)!.deliveryFee, 0,
+              isFree: true),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 12),
             child: Divider(height: 1),
@@ -699,7 +771,7 @@ class _CartViewState extends State<CartView> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Grand Total",
+              Text(AppLocalizations.of(context)!.grandTotal,
                   style: GoogleFonts.outfit(
                       fontWeight: FontWeight.w800, fontSize: 16)),
               Text("${Constants.inr}${total.toStringAsFixed(2)}",
@@ -723,7 +795,8 @@ class _CartViewState extends State<CartView> {
                       color: Constants.baseColor, size: 14),
                   const SizedBox(width: 6),
                   Text(
-                    "You saved ${Constants.inr}${discount.toStringAsFixed(0)} on this order",
+                    AppLocalizations.of(context)!.youSaved(
+                        "${Constants.inr}${discount.toStringAsFixed(0)}"),
                     style: GoogleFonts.inter(
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
@@ -793,11 +866,13 @@ class _CartViewState extends State<CartView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Delivery Address",
+                    Text(AppLocalizations.of(context)!.deliveryAddress,
                         style: GoogleFonts.outfit(
                             fontWeight: FontWeight.w800, fontSize: 15)),
                     if (_selectedAddress != null)
-                      Text("Delivering to Home",
+                      Text(
+                          AppLocalizations.of(context)!.deliveringTo(
+                              _selectedAddress!['label'] ?? "Home"),
                           style: GoogleFonts.inter(
                               fontWeight: FontWeight.w600,
                               fontSize: 10,
@@ -812,7 +887,7 @@ class _CartViewState extends State<CartView> {
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  child: Text("CHANGE",
+                  child: Text(AppLocalizations.of(context)!.change,
                       style: GoogleFonts.inter(
                           fontWeight: FontWeight.w900,
                           fontSize: 11,
@@ -881,7 +956,7 @@ class _CartViewState extends State<CartView> {
             Icon(Icons.add_location_alt_rounded,
                 color: Colors.red[300], size: 30),
             const SizedBox(height: 12),
-            Text("Select delivery address to proceed",
+            Text(AppLocalizations.of(context)!.selectAddressToProceed,
                 style: GoogleFonts.inter(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -895,7 +970,11 @@ class _CartViewState extends State<CartView> {
   void _selectAddress() async {
     final result = await Navigator.push(
         context, MaterialPageRoute(builder: (_) => const AddressView()));
-    if (result != null) setState(() => _selectedAddress = result);
+    if (result != null) {
+      setState(() => _selectedAddress = result);
+    } else {
+      _loadDefaultAddress();
+    }
   }
 
   Widget _buildSafetyBadge() {
@@ -909,7 +988,7 @@ class _CartViewState extends State<CartView> {
               Icon(Icons.verified_user_rounded,
                   color: Colors.grey[300], size: 14),
               const SizedBox(width: 8),
-              Text("100% SECURE TRANSACTIONS",
+              Text(AppLocalizations.of(context)!.secureTransactions,
                   style: GoogleFonts.inter(
                       fontSize: 10,
                       fontWeight: FontWeight.w900,
@@ -918,7 +997,7 @@ class _CartViewState extends State<CartView> {
             ],
           ),
           const SizedBox(height: 8),
-          Text("AUTHENTIC • CERTIFIED • RELIABLE",
+          Text(AppLocalizations.of(context)!.trustBadges,
               style: GoogleFonts.inter(
                   fontSize: 8,
                   fontWeight: FontWeight.w800,
@@ -992,8 +1071,10 @@ class _CartViewState extends State<CartView> {
                             children: [
                               Text(
                                   _selectedAddress == null
-                                      ? "ADD DELIVERY ADDRESS"
-                                      : "PROCEED TO PLACE ORDER",
+                                      ? AppLocalizations.of(context)!
+                                          .addDeliveryAddress
+                                      : AppLocalizations.of(context)!
+                                          .proceedToPlaceOrder,
                                   style: GoogleFonts.outfit(
                                       fontWeight: FontWeight.w900,
                                       color: Colors.white,
@@ -1043,10 +1124,10 @@ class _CartViewState extends State<CartView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Payment Options",
+                      Text(AppLocalizations.of(context)!.paymentOptions,
                           style: GoogleFonts.outfit(
                               fontWeight: FontWeight.w900, fontSize: 18)),
-                      Text("Choose your preferred method",
+                      Text(AppLocalizations.of(context)!.choosePreferredMethod,
                           style: GoogleFonts.inter(
                               fontSize: 11,
                               color: Colors.grey[400],
@@ -1069,8 +1150,11 @@ class _CartViewState extends State<CartView> {
               ],
             ),
             const SizedBox(height: 20),
-            _paymentOption(Icons.account_balance_wallet_rounded,
-                "Online Payment", "UPI, Cards, Wallets", Constants.baseColor,
+            _paymentOption(
+                Icons.account_balance_wallet_rounded,
+                AppLocalizations.of(context)!.onlinePayment,
+                AppLocalizations.of(context)!.payMethodSubtitle,
+                Constants.baseColor,
                 discount: _appliedDiscount == null
                     ? "₹${Constants.payOnlineDiscountAmount.toInt()} OFF"
                     : null, () {
@@ -1078,8 +1162,11 @@ class _CartViewState extends State<CartView> {
               _payOnline();
             }),
             const SizedBox(height: 8),
-            _paymentOption(Icons.currency_rupee_rounded, "Cash on Delivery",
-                "Pay at your doorstep", const Color(0xFF4A4A4A), () {
+            _paymentOption(
+                Icons.currency_rupee_rounded,
+                AppLocalizations.of(context)!.cod,
+                AppLocalizations.of(context)!.codSubtitle,
+                const Color(0xFF4A4A4A), () {
               Navigator.pop(context);
               _createShopifyOrder(isCod: true);
             }),
@@ -1100,7 +1187,8 @@ class _CartViewState extends State<CartView> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        "Coupon active: Online discount disabled.",
+                        AppLocalizations.of(context)!
+                            .couponActiveOnlineDisabled,
                         style: GoogleFonts.inter(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,

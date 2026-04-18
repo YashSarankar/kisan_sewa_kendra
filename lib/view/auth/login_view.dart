@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'otp_view.dart';
+import 'package:kisan_sewa_kendra/l10n/app_localizations.dart';
 import '../home_view.dart';
 import '../../controller/auth_controller.dart';
 import '../../controller/constants.dart';
@@ -147,7 +148,7 @@ class _LoginViewState extends State<LoginView>
 
                           // Heading
                           Text(
-                            'Welcome to\n${Constants.title}',
+                            '${AppLocalizations.of(context)!.welcomeTo}\n${Constants.title}',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 30,
@@ -159,7 +160,7 @@ class _LoginViewState extends State<LoginView>
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            'Enter your mobile number to get started',
+                            AppLocalizations.of(context)!.loginPrompt,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 15,
@@ -174,7 +175,7 @@ class _LoginViewState extends State<LoginView>
 
                     // Phone field
                     Text(
-                      'Mobile Number',
+                      AppLocalizations.of(context)!.mobileNumber,
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
@@ -241,9 +242,9 @@ class _LoginViewState extends State<LoginView>
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty)
-                          return 'Please enter your mobile number';
+                          return AppLocalizations.of(context)!.enterMobileValid;
                         if (value.length != 10)
-                          return 'Mobile number must be 10 digits';
+                          return AppLocalizations.of(context)!.enterMobile10;
                         return null;
                       },
                     ),
@@ -275,8 +276,8 @@ class _LoginViewState extends State<LoginView>
                               )
                             : Text(
                                 _cooldown > 0
-                                    ? 'Try again in $_cooldown s'
-                                    : 'Send OTP',
+                                    ? AppLocalizations.of(context)!.tryAgainIn(_cooldown)
+                                    : AppLocalizations.of(context)!.sendOtp,
                                 style: const TextStyle(
                                   fontSize: 17,
                                   fontWeight: FontWeight.w700,
@@ -289,7 +290,7 @@ class _LoginViewState extends State<LoginView>
 
                     Center(
                       child: Text(
-                        'We\'ll send a verification code to your number',
+                        AppLocalizations.of(context)!.verificationSentMsg,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             fontSize: 13, color: Colors.grey.shade400),
@@ -304,7 +305,7 @@ class _LoginViewState extends State<LoginView>
                         alignment: WrapAlignment.center,
                         children: [
                           Text(
-                            'By continuing, you agree to our ',
+                            AppLocalizations.of(context)!.agreeTermsMsg,
                             style: TextStyle(
                                 fontSize: 12, color: Colors.grey.shade400),
                           ),
@@ -317,7 +318,7 @@ class _LoginViewState extends State<LoginView>
                               }
                             },
                             child: Text(
-                              'Terms of Service',
+                              AppLocalizations.of(context)!.termsConditions,
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Constants.baseColor,
@@ -326,7 +327,7 @@ class _LoginViewState extends State<LoginView>
                             ),
                           ),
                           Text(
-                            ' and ',
+                            AppLocalizations.of(context)!.and,
                             style: TextStyle(
                                 fontSize: 12, color: Colors.grey.shade400),
                           ),
@@ -339,7 +340,7 @@ class _LoginViewState extends State<LoginView>
                               }
                             },
                             child: Text(
-                              'Privacy Policy',
+                              AppLocalizations.of(context)!.privacyPolicy,
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Constants.baseColor,

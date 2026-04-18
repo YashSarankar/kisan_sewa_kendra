@@ -980,6 +980,43 @@ class Shopify {
     return [];
   }
 
+  static Future<Map<String, String>> getCollectionDetails(
+    BuildContext context, {
+    required String id,
+    String? forcedLang,
+  }) async {
+    try {
+      var res = await getGraphQLData(
+        context,
+        forcedLang: forcedLang,
+        body: '''
+          collection(id: "$_colIdPre$id") {
+            id
+            title
+            handle
+            description
+            image { url }
+          }
+        ''',
+      );
+
+      if (res.isNotEmpty &&
+          res['data'] != null &&
+          res['data']['collection'] != null) {
+        var node = res['data']['collection'];
+        return {
+          "title": node['title'] ?? '',
+          "handle": node['handle'] ?? '',
+          "description": node['description'] ?? '',
+          "image": node['image']?['url'] ?? '',
+        };
+      }
+    } catch (e) {
+      debugPrint("Error in getCollectionDetails: $e");
+    }
+    return {};
+  }
+
   static Future<List<CategoriesModel>> getCategories(
     BuildContext context, {
     String? forcedLang,

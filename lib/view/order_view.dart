@@ -11,8 +11,8 @@ import 'package:kisan_sewa_kendra/components/network_image.dart';
 import 'support_view.dart';
 import '../controller/cart_controller.dart';
 import '../controller/routers.dart';
+import 'package:kisan_sewa_kendra/l10n/app_localizations.dart';
 import 'cart_view.dart';
-import '../components/cart_icon.dart';
 
 class OrderView extends StatefulWidget {
   const OrderView({super.key});
@@ -236,7 +236,7 @@ class _OrderViewState extends State<OrderView>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "My Orders",
+                AppLocalizations.of(context)!.myOrders,
                 style: GoogleFonts.outfit(
                   fontSize: 26,
                   fontWeight: FontWeight.w900,
@@ -256,8 +256,8 @@ class _OrderViewState extends State<OrderView>
                     ),
                     child: Text(
                       activeCount > 0
-                          ? "$activeCount ACTIVE"
-                          : "NO ACTIVE ORDERS",
+                          ? "$activeCount ${AppLocalizations.of(context)!.active}"
+                          : AppLocalizations.of(context)!.noActiveOrders,
                       style: GoogleFonts.inter(
                         fontSize: 9,
                         fontWeight: FontWeight.w900,
@@ -268,7 +268,7 @@ class _OrderViewState extends State<OrderView>
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    "Order History",
+                    AppLocalizations.of(context)!.orderHistory,
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -281,8 +281,6 @@ class _OrderViewState extends State<OrderView>
           ),
           Row(
             children: [
-              const KskCartIcon(),
-              const SizedBox(width: 12),
               _buildStatIndicator(),
             ],
           ),
@@ -309,7 +307,7 @@ class _OrderViewState extends State<OrderView>
             ),
           ),
           Text(
-            "TOTAL",
+            AppLocalizations.of(context)!.total,
             style: GoogleFonts.inter(
               fontSize: 7,
               fontWeight: FontWeight.w900,
@@ -323,7 +321,12 @@ class _OrderViewState extends State<OrderView>
   }
 
   Widget _buildFilterChips(TabController controller) {
-    const filters = ["All Orders", "Ongoing", "Delivered", "Cancelled"];
+    final filters = [
+      AppLocalizations.of(context)!.allOrders,
+      AppLocalizations.of(context)!.ongoing,
+      AppLocalizations.of(context)!.delivered,
+      AppLocalizations.of(context)!.cancelled
+    ];
     return AnimatedBuilder(
       animation: controller,
       builder: (context, _) {
@@ -509,7 +512,7 @@ class _OrderViewState extends State<OrderView>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "${order.totalQuantity} Item${order.totalQuantity > 1 ? 's' : ''}",
+                            AppLocalizations.of(context)!.items(order.totalQuantity),
                             style: GoogleFonts.inter(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
@@ -538,7 +541,7 @@ class _OrderViewState extends State<OrderView>
                     children: [
                       Expanded(
                         child: _buildActionButton(
-                          label: "Details",
+                          label: AppLocalizations.of(context)!.details,
                           icon: Icons.info_outline,
                           color: Colors.grey.withOpacity(0.1),
                           textColor: Colors.grey[500]!,
@@ -557,7 +560,7 @@ class _OrderViewState extends State<OrderView>
                       const SizedBox(width: 8),
                       Expanded(
                         child: _buildActionButton(
-                          label: "Reorder",
+                          label: AppLocalizations.of(context)!.reorder,
                           icon: Icons.refresh_rounded,
                           color: Constants.baseColor,
                           onPressed: () async {
@@ -577,8 +580,8 @@ class _OrderViewState extends State<OrderView>
                               }
                             }
                             scaffoldMessenger.showSnackBar(
-                              const SnackBar(
-                                  content: Text("Items added to bag")),
+                              SnackBar(
+                                  content: Text(AppLocalizations.of(context)!.itemsAddedToBag)),
                             );
                             if (mounted) {
                               Routers.goTO(context, toBody: const CartView());
@@ -746,7 +749,7 @@ class _OrderViewState extends State<OrderView>
             ),
             const SizedBox(height: 32),
             Text(
-              "Access Restricted",
+              AppLocalizations.of(context)!.accessRestricted,
               style: GoogleFonts.outfit(
                   fontSize: 24,
                   fontWeight: FontWeight.w800,
@@ -754,7 +757,7 @@ class _OrderViewState extends State<OrderView>
             ),
             const SizedBox(height: 12),
             Text(
-              "Please sign in to view your orders and track the progress of your shipments in real-time.",
+              AppLocalizations.of(context)!.signInPrompt,
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                   color: Colors.grey[500], fontSize: 14, height: 1.5),
@@ -783,7 +786,7 @@ class _OrderViewState extends State<OrderView>
             ),
             const SizedBox(height: 32),
             Text(
-              "Your Bag is Empty",
+              AppLocalizations.of(context)!.bagEmpty,
               style: GoogleFonts.outfit(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
@@ -791,7 +794,7 @@ class _OrderViewState extends State<OrderView>
             ),
             const SizedBox(height: 10),
             Text(
-              "Looks like you haven't placed any orders yet. Start shopping to fill it up!",
+              AppLocalizations.of(context)!.emptyOrdersPrompt,
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                   color: Colors.grey[400], fontSize: 14, height: 1.5),

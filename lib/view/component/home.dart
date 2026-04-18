@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:kisan_sewa_kendra/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
+import 'package:google_fonts/google_fonts.dart';
 import '../../components/network_image.dart';
 import '../../components/products_grid.dart';
 import '../../components/widget_button.dart';
@@ -275,7 +277,7 @@ class _HomeState extends State<Home> {
         if (isSvg) {
           filtered.add(CategoriesModel(
             id: found.id,
-            title: title,
+            title: _getLocalizedCategoryTitle(context, title),
             handle: found.handle,
             description: found.description,
             image: found.image,
@@ -295,6 +297,33 @@ class _HomeState extends State<Home> {
           DefaultCacheManager().downloadFile(cat.image);
         }
       }
+    }
+  }
+
+  String _getLocalizedCategoryTitle(BuildContext context, String title) {
+    if (!mounted) return title;
+    final l10n = AppLocalizations.of(context)!;
+    switch (title) {
+      case 'PGRs':
+        return l10n.pgr;
+      case 'Insecticides':
+        return l10n.insecticides;
+      case 'Fungicides':
+        return l10n.fungicides;
+      case 'Fertilizers':
+        return l10n.fertilizers;
+      case 'Herbicides':
+        return l10n.herbicides;
+      case 'NPK Fertilizers':
+        return l10n.npkFertilizer;
+      case 'Bio-Pesticides':
+        return l10n.bioPesticide;
+      case 'Bio-Fungicide':
+        return l10n.bioFungicide;
+      case 'Bio-Fertilizers':
+        return l10n.bioFertilizer;
+      default:
+        return title;
     }
   }
 
@@ -409,9 +438,9 @@ class _HomeState extends State<Home> {
                               ),
                             ),
                             const SizedBox(width: 10),
-                            const Text(
-                              "Categories",
-                              style: TextStyle(
+                            Text(
+                              AppLocalizations.of(context)!.categories,
+                              style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: -0.5),
@@ -464,6 +493,8 @@ class _HomeState extends State<Home> {
                                     child: KskNetworkImage(
                                       cat.image,
                                       fit: BoxFit.contain,
+                                      width: double.infinity,
+                                      height: double.infinity,
                                     ),
                                   ),
                                 ),
@@ -512,7 +543,15 @@ class _HomeState extends State<Home> {
             child: WidgetButton(
               onTap: () => Routers.goTO(context,
                   toBody: CollectionView(collectionId: data['id']!)),
-              child: KskNetworkImage(data['image']!, fit: BoxFit.fill),
+              child: AspectRatio(
+                aspectRatio: 5.0,
+                child: KskNetworkImage(
+                  data['image']!,
+                  fit: BoxFit.fill,
+                  width: double.infinity,
+                  height: double.infinity,
+                ),
+              ),
             ),
           ),
         ),
@@ -535,9 +574,9 @@ class _HomeState extends State<Home> {
                 child: TextButton.icon(
                   onPressed: () => Routers.goTO(context,
                       toBody: CollectionView(collectionId: data['id']!)),
-                  icon: const Text("Explore More",
-                      style:
-                          TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                  icon: Text(AppLocalizations.of(context)!.exploreMore,
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.bold)),
                   label: const Icon(Icons.arrow_right_alt, size: 18),
                   style: TextButton.styleFrom(
                       foregroundColor: Constants.baseColor,
@@ -567,9 +606,12 @@ class _HomeState extends State<Home> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _trustItem(Icons.local_shipping_outlined, "Free Shipping"),
-                _trustItem(Icons.verified_outlined, "Secure Pay"),
-                _trustItem(Icons.support_agent_rounded, "Agri Support"),
+                _trustItem(Icons.local_shipping_outlined,
+                    AppLocalizations.of(context)!.freeShipping),
+                _trustItem(Icons.verified_outlined,
+                    AppLocalizations.of(context)!.securePay),
+                _trustItem(Icons.support_agent_rounded,
+                    AppLocalizations.of(context)!.agriSupport),
               ],
             ),
           ),
@@ -584,7 +626,7 @@ class _HomeState extends State<Home> {
                   onPressed: () =>
                       launchUrlString("https://wa.me/919399022060"),
                   icon: const Icon(Icons.chat_bubble_outline, size: 16),
-                  label: const Text("WhatsApp Support"),
+                  label: Text(AppLocalizations.of(context)!.whatsAppSupport),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF25D366),
                     foregroundColor: Colors.white,

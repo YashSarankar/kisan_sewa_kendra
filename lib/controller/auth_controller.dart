@@ -75,16 +75,8 @@ class AuthController {
 
     List<Map<String, String>> current = await getStoredAddresses();
 
-    // If name & address1 & pincode matches an existing address, don't duplicate
-    bool exists = current.any((a) =>
-        a['address1'] == address1 &&
-        a['pincode'] == pincode &&
-        a['name'] == name);
-
-    if (!exists) {
-      current.insert(0, address); // Add new address at the top
-      await prefs.setString(_keyAddressList, jsonEncode(current));
-    }
+    current.insert(0, address); // Add new address at the top
+    await prefs.setString(_keyAddressList, jsonEncode(current));
 
     if (name != null) {
       await prefs.setString(_keyName, name);
@@ -183,13 +175,18 @@ class AuthController {
 
             onAutoVerified();
           } catch (e) {
-            debugPrint('Auto-verification failed: $e');
+            debugPrint('AuthController: Auto-verification notice: $e');
+            // Check if we are already signed in (sometimes happens in quick succession)
             if (_auth.currentUser != null) {
               onAutoVerified();
             }
+            // Note: We don't call onError here because the user can still enter the OTP manually
           }
         },
         verificationFailed: (FirebaseAuthException e) {
+          // If we are already signed in (auto-verification completed), ignore late failure events
+          if (_auth.currentUser != null) return;
+
           String message = 'Verification failed. Please try again.';
           if (e.code == 'invalid-phone-number') {
             message = 'Invalid phone number. Please check and try again.';
@@ -198,6 +195,8 @@ class AuthController {
                 'Too many attempts. You have been temporarily blocked for security reasons. Please try again in 4-24 hours.';
           } else if (e.code == 'network-request-failed') {
             message = 'Network error. Please check your internet connection.';
+          } else if (e.code == 'session-expired') {
+            message = 'The SMS code has expired. Please request a new code.';
           } else {
             message = 'Error (${e.code}): ${e.message}';
           }

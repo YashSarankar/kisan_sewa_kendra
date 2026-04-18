@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:kisan_sewa_kendra/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../controller/constants.dart';
-import '../components/cart_icon.dart';
 
 class SupportView extends StatefulWidget {
   const SupportView({super.key});
@@ -143,9 +143,9 @@ class _SupportViewState extends State<SupportView>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Constants.baseColor.withValues(alpha: 0.9),
-                Constants.baseColor,
-                Constants.baseColor.withValues(alpha: 0.8),
+              Constants.baseColor.withOpacity(0.9),
+              Constants.baseColor,
+              Constants.baseColor.withOpacity(0.8),
               ],
             ),
             borderRadius: const BorderRadius.only(
@@ -165,7 +165,7 @@ class _SupportViewState extends State<SupportView>
                 child: Icon(
                   Icons.support_agent_rounded,
                   size: 200,
-                  color: Colors.white.withValues(alpha: 0.06),
+                  color: Colors.white.withOpacity(0.06),
                 ),
               ),
 
@@ -177,57 +177,54 @@ class _SupportViewState extends State<SupportView>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          FontAwesomeIcons.headset,
-                          color: Colors.white,
-                          size: 20,
+                      GestureDetector(
+                        onTap: () => Scaffold.of(context).openDrawer(),
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.menu_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                         ),
                       ),
-                      Row(
-                        children: [
-                          const KskCartIcon(color: Colors.white),
-                          const SizedBox(width: 8),
-                          GestureDetector(
-                            onTap: _callUs,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.18),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.phone_rounded,
-                                      color: Colors.white, size: 16),
-                                  SizedBox(width: 6),
-                                  Text(
-                                    "Call Now",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                      GestureDetector(
+                        onTap: _callUs,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.18),
+                            borderRadius: BorderRadius.circular(20),
                           ),
-                        ],
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.phone_rounded,
+                                  color: Colors.white, size: 16),
+                              const SizedBox(width: 6),
+                              Text(
+                                AppLocalizations.of(context)!.callNow,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 14),
-                  const Text(
-                    "Help & Support",
-                    style: TextStyle(
+                  Text(
+                    AppLocalizations.of(context)!.helpSupport,
+                    style: const TextStyle(
                       fontSize: 21,
                       fontWeight: FontWeight.w800,
                       color: Colors.white,
@@ -236,10 +233,10 @@ class _SupportViewState extends State<SupportView>
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    "We're here to help you with anything.",
+                    AppLocalizations.of(context)!.supportSubtitle,
                     style: TextStyle(
                       fontSize: 13.5,
-                      color: Colors.white.withValues(alpha: 0.85),
+                      color: Colors.white.withOpacity(0.85),
                       height: 1.5,
                     ),
                   ),
@@ -262,13 +259,13 @@ class _SupportViewState extends State<SupportView>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Constants.baseColor.withValues(alpha: 0.08),
+            color: Constants.baseColor.withOpacity(0.08),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
         border: Border.all(
-          color: Constants.baseColor.withValues(alpha: 0.05),
+          color: Constants.baseColor.withOpacity(0.05),
           width: 1,
         ),
       ),
@@ -293,20 +290,20 @@ class _SupportViewState extends State<SupportView>
                   ),
                 ),
                 const SizedBox(width: 10),
-                const Column(
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Send a Message",
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.sendMessage,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
                         color: Color(0xFF1B2B1C),
                       ),
                     ),
                     Text(
-                      "We'll reply within 24 hours",
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.replyTime,
+                      style: const TextStyle(
                         fontSize: 11.5,
                         color: Color(0xFF9E9E9E),
                       ),
@@ -320,45 +317,45 @@ class _SupportViewState extends State<SupportView>
 
             // Form fields
             _field(
-              label: "Full Name",
+              label: AppLocalizations.of(context)!.fullName,
               icon: Icons.person_outline_rounded,
               controller: _nameController,
-              validator: (v) => v!.isEmpty ? "Enter your name" : null,
+              validator: (v) => v!.isEmpty ? AppLocalizations.of(context)!.enterName : null,
             ),
             _field(
-              label: "Phone Number",
+              label: AppLocalizations.of(context)!.phoneNumber,
               icon: Icons.phone_android_rounded,
               controller: _phoneController,
               keyboardType: TextInputType.phone,
               validator: (v) {
                 if (v == null || v.isEmpty)
-                  return "Enter 10-digit mobile number";
+                  return AppLocalizations.of(context)!.enterMobile;
                 if (!RegExp(r'^[0-9]{10}$').hasMatch(v)) {
-                  return "Enter valid 10-digit number";
+                  return AppLocalizations.of(context)!.enterMobile;
                 }
                 return null;
               },
             ),
             _field(
-              label: "Email Address",
+              label: AppLocalizations.of(context)!.emailAddress,
               icon: Icons.email_outlined,
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
               validator: (v) {
-                if (v == null || v.isEmpty) return "Enter valid email";
+                if (v == null || v.isEmpty) return AppLocalizations.of(context)!.enterEmail;
                 if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v)) {
-                  return "Enter valid email address";
+                  return AppLocalizations.of(context)!.enterEmail;
                 }
                 return null;
               },
             ),
             _field(
-              label: "Your Message",
+              label: AppLocalizations.of(context)!.yourMessage,
               icon: Icons.chat_bubble_outline_rounded,
               maxLines: 3,
               controller: _messageController,
               validator: (v) =>
-                  (v == null || v.length < 3) ? "Min 3 characters" : null,
+                  (v == null || v.length < 3) ? AppLocalizations.of(context)!.minCharacters : null,
             ),
 
             const SizedBox(height: 4),
@@ -380,7 +377,7 @@ class _SupportViewState extends State<SupportView>
                       )
                     : const Icon(FontAwesomeIcons.whatsapp, size: 18),
                 label: Text(
-                  _isLoading ? "Sending..." : "Send via WhatsApp",
+                  _isLoading ? AppLocalizations.of(context)!.sending : AppLocalizations.of(context)!.sendWhatsApp,
                   style: const TextStyle(
                     fontSize: 14.5,
                     fontWeight: FontWeight.w700,
@@ -460,13 +457,13 @@ class _SupportViewState extends State<SupportView>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Constants.baseColor.withValues(alpha: 0.08),
+            color: Constants.baseColor.withOpacity(0.08),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
         border: Border.all(
-          color: Constants.baseColor.withValues(alpha: 0.05),
+          color: Constants.baseColor.withOpacity(0.05),
           width: 1,
         ),
       ),
@@ -490,13 +487,13 @@ class _SupportViewState extends State<SupportView>
                   ),
                 ),
                 const SizedBox(width: 14),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Head Office",
-                        style: TextStyle(
+                        AppLocalizations.of(context)!.headOffice,
+                        style: const TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 14,
                           color: Color(0xFF1B2B1C),

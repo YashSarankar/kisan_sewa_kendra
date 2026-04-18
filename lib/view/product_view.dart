@@ -4,6 +4,7 @@ import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kisan_sewa_kendra/components/cart_summary_bar.dart';
 import 'package:kisan_sewa_kendra/components/products_grid.dart';
+import 'package:kisan_sewa_kendra/l10n/app_localizations.dart';
 import 'package:kisan_sewa_kendra/view/cart_view.dart';
 
 import 'dart:async';
@@ -273,7 +274,7 @@ class _ProductViewState extends State<ProductView>
             ],
           ),
           child: Text(
-            "${per.toInt()}% OFF",
+            AppLocalizations.of(context)!.off(per.toInt().toString()),
             style: const TextStyle(
               fontSize: 12,
               color: Colors.white,
@@ -338,8 +339,8 @@ class _ProductViewState extends State<ProductView>
             onPressed: () => Navigator.pop(context),
           ),
         ),
-        body:
-            const Center(child: Text("Product details currently unavailable")),
+        body: Center(
+            child: Text(AppLocalizations.of(context)!.productUnavailable)),
       );
     }
 
@@ -457,7 +458,7 @@ class _ProductViewState extends State<ProductView>
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          "Brand: KrishiKranti Organics",
+                          "${AppLocalizations.of(context)!.brand}: ${AppLocalizations.of(context)!.appBrandName}",
                           style: TextStyle(
                               color: Colors.grey[700],
                               fontSize: 11,
@@ -480,9 +481,9 @@ class _ProductViewState extends State<ProductView>
                                 const Icon(Icons.flash_on_rounded,
                                     color: Colors.green, size: 12),
                                 const SizedBox(width: 4),
-                                const Text(
-                                  "Fast Delivery",
-                                  style: TextStyle(
+                                Text(
+                                  AppLocalizations.of(context)!.fastDelivery,
+                                  style: const TextStyle(
                                     color: Colors.green,
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
@@ -526,7 +527,7 @@ class _ProductViewState extends State<ProductView>
                         ],
                       ),
                       const SizedBox(height: 6),
-                      Text("Inclusive of all taxes",
+                      Text(AppLocalizations.of(context)!.inclusiveTaxes,
                           style: TextStyle(
                               fontSize: 11,
                               color: Colors.grey[500],
@@ -544,15 +545,19 @@ class _ProductViewState extends State<ProductView>
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
                             _buildTrustBadge(Icons.verified_user_outlined,
-                                "100%", "Original"),
+                                "100%", AppLocalizations.of(context)!.original),
                             Container(
                                 width: 1, height: 30, color: Colors.grey[300]),
-                            _buildTrustBadge(Icons.assignment_return_outlined,
-                                "Easy", "Returns"),
+                            _buildTrustBadge(
+                                Icons.assignment_return_outlined,
+                                AppLocalizations.of(context)!.easy,
+                                AppLocalizations.of(context)!.returns),
                             Container(
                                 width: 1, height: 30, color: Colors.grey[300]),
-                            _buildTrustBadge(Icons.local_shipping_outlined,
-                                "Fast", "Dispatch"),
+                            _buildTrustBadge(
+                                Icons.local_shipping_outlined,
+                                AppLocalizations.of(context)!.fast,
+                                AppLocalizations.of(context)!.dispatch),
                           ],
                         ),
                       ),
@@ -568,8 +573,8 @@ class _ProductViewState extends State<ProductView>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Select Variant",
-                          style: TextStyle(
+                      Text(AppLocalizations.of(context)!.selectVariant,
+                          style: const TextStyle(
                               fontWeight: FontWeight.w900,
                               fontSize: 14,
                               color: Colors.black87)),
@@ -657,9 +662,12 @@ class _ProductViewState extends State<ProductView>
                         fontWeight: FontWeight.w900,
                         fontSize: 13,
                         letterSpacing: 0.5),
-                    tabs: const [
-                      Tab(text: "OVERVIEW"),
-                      Tab(text: "DETAILS"),
+                    tabs: [
+                      Tab(text: AppLocalizations.of(context)!.overview),
+                      Tab(
+                          text: AppLocalizations.of(context)!
+                              .details
+                              .toUpperCase()),
                     ],
                   ),
                 ),
@@ -698,12 +706,12 @@ class _ProductViewState extends State<ProductView>
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text("Similar Products",
-                            style: TextStyle(
+                        Text(AppLocalizations.of(context)!.similarProducts,
+                            style: const TextStyle(
                                 fontWeight: FontWeight.w900,
                                 fontSize: 18,
                                 color: Colors.black)),
-                        Text("View All",
+                        Text(AppLocalizations.of(context)!.viewAll,
                             style: TextStyle(
                                 color: Constants.baseColor,
                                 fontWeight: FontWeight.bold,
@@ -784,9 +792,10 @@ class _ProductViewState extends State<ProductView>
                           ScaffoldMessenger.of(context).clearSnackBars();
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: const Text("Product added to cart!",
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.bold)),
+                              content: Text(
+                                  AppLocalizations.of(context)!.addedToCart,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold)),
                               backgroundColor: Constants.baseColor,
                               behavior: SnackBarBehavior.floating,
                               duration: const Duration(milliseconds: 1000),
@@ -804,12 +813,13 @@ class _ProductViewState extends State<ProductView>
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12)),
                         ),
-                        child: const FittedBox(
+                        child: FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 8.0),
-                            child: Text("Add to Cart",
-                                style: TextStyle(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: Text(AppLocalizations.of(context)!.addToCart,
+                                style: const TextStyle(
                                     fontWeight: FontWeight.w800, fontSize: 16)),
                           ),
                         ),
@@ -872,12 +882,12 @@ class _ProductViewState extends State<ProductView>
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const FittedBox(
+                  child: FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Text("Buy Now",
-                          style: TextStyle(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Text(AppLocalizations.of(context)!.buyNow,
+                          style: const TextStyle(
                               fontWeight: FontWeight.w800, fontSize: 16)),
                     ),
                   ),
@@ -892,9 +902,9 @@ class _ProductViewState extends State<ProductView>
 
   Widget _buildOverviewContent() {
     final Map<String, String> details = {
-      "Product Name": widget.product.title,
-      "Brand": "KrishiKranti Organics",
-      "Category": widget.product.productType,
+      AppLocalizations.of(context)!.productName: widget.product.title,
+      AppLocalizations.of(context)!.brand: "KrishiKranti Organics",
+      AppLocalizations.of(context)!.category: widget.product.productType,
     };
 
     String techContent = "";
@@ -906,7 +916,7 @@ class _ProductViewState extends State<ProductView>
     }
 
     if (techContent.isNotEmpty) {
-      details["Technical Content"] = techContent;
+      details[AppLocalizations.of(context)!.technicalContent] = techContent;
     }
 
     return Padding(
@@ -951,11 +961,11 @@ class _ProductViewState extends State<ProductView>
 
   Widget _buildDescriptionContent() {
     if (widget.product.body.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(40),
+      return Padding(
+        padding: const EdgeInsets.all(40),
         child: Center(
-            child: Text("No description available.",
-                style: TextStyle(color: Colors.grey))),
+            child: Text(AppLocalizations.of(context)!.noDescription,
+                style: const TextStyle(color: Colors.grey))),
       );
     }
 
@@ -964,8 +974,8 @@ class _ProductViewState extends State<ProductView>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("About Product",
-              style: TextStyle(
+          Text(AppLocalizations.of(context)!.aboutProduct,
+              style: const TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 17,
                   color: Colors.black)),
@@ -1032,7 +1042,9 @@ class _ProductViewState extends State<ProductView>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      _isExpanded ? "VIEW LESS" : "VIEW MORE",
+                      _isExpanded
+                          ? AppLocalizations.of(context)!.viewLess
+                          : AppLocalizations.of(context)!.viewMore,
                       style: TextStyle(
                           color: Constants.baseColor,
                           fontWeight: FontWeight.w900,
@@ -1076,8 +1088,8 @@ class _ProductViewState extends State<ProductView>
                     color: Constants.baseColor, size: 18),
               ),
               const SizedBox(width: 10),
-              const Text("How to Use",
-                  style: TextStyle(
+              Text(AppLocalizations.of(context)!.howToUse,
+                  style: const TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 17,
                       color: Colors.black)),
@@ -1093,17 +1105,23 @@ class _ProductViewState extends State<ProductView>
             ),
             child: Column(
               children: [
-                _usageItem(Icons.water_drop_outlined, "Dosage",
+                _usageItem(
+                    Icons.water_drop_outlined,
+                    AppLocalizations.of(context)!.dosage,
                     "Mix 2-3 ml per liter of water."),
                 const Padding(
                     padding: EdgeInsets.symmetric(vertical: 12),
                     child: Divider(height: 1, color: Color(0xFFEBEBEB))),
-                _usageItem(Icons.schedule_rounded, "Apply Time",
+                _usageItem(
+                    Icons.schedule_rounded,
+                    AppLocalizations.of(context)!.applyTime,
                     "Best applied during early morning or evening."),
                 const Padding(
                     padding: EdgeInsets.symmetric(vertical: 12),
                     child: Divider(height: 1, color: Color(0xFFEBEBEB))),
-                _usageItem(Icons.auto_awesome_outlined, "Method",
+                _usageItem(
+                    Icons.auto_awesome_outlined,
+                    AppLocalizations.of(context)!.method,
                     "Foliar spray for maximum effectiveness."),
               ],
             ),
@@ -1153,14 +1171,14 @@ class _ProductViewState extends State<ProductView>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Write a Review",
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!.writeReview,
+            style: const TextStyle(
                 fontWeight: FontWeight.w900, fontSize: 17, color: Colors.black),
           ),
           const SizedBox(height: 8),
           Text(
-            "Share your experience with this product",
+            AppLocalizations.of(context)!.shareExperience,
             style: TextStyle(fontSize: 13, color: Colors.grey[600]),
           ),
           const SizedBox(height: 20),
@@ -1192,7 +1210,7 @@ class _ProductViewState extends State<ProductView>
             controller: _reviewController,
             maxLines: 4,
             decoration: InputDecoration(
-              hintText: "Describe your experience...",
+              hintText: AppLocalizations.of(context)!.describeExperience,
               hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
               filled: true,
               fillColor: const Color(0xFFF9F9F9),
@@ -1237,7 +1255,7 @@ class _ProductViewState extends State<ProductView>
                 // Add review to local list
                 setState(() {
                   _reviews.insert(0, {
-                    "name": "You",
+                    "name": AppLocalizations.of(context)!.you,
                     "rating": _userRating,
                     "comment": _reviewController.text.trim(),
                     "date": "Just now"
@@ -1263,9 +1281,9 @@ class _ProductViewState extends State<ProductView>
                     borderRadius: BorderRadius.circular(12)),
                 elevation: 0,
               ),
-              child: const Text(
-                "SUBMIT REVIEW",
-                style: TextStyle(
+              child: Text(
+                AppLocalizations.of(context)!.submitReview,
+                style: const TextStyle(
                     fontWeight: FontWeight.w900,
                     fontSize: 14,
                     letterSpacing: 1),
@@ -1283,11 +1301,11 @@ class _ProductViewState extends State<ProductView>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           child: Text(
-            "Customer Reviews",
-            style: TextStyle(
+            AppLocalizations.of(context)!.customerReviews,
+            style: const TextStyle(
                 fontWeight: FontWeight.w900, fontSize: 17, color: Colors.black),
           ),
         ),
@@ -1298,6 +1316,22 @@ class _ProductViewState extends State<ProductView>
           itemCount: _reviews.length,
           itemBuilder: (context, index) {
             final review = _reviews[index];
+            
+            // Translate placeholder comments
+            String comment = review['comment'];
+            if (comment.contains("Very effective product")) {
+              comment = AppLocalizations.of(context)!.review1Comment;
+            } else if (comment.contains("Good quality and original")) {
+              comment = AppLocalizations.of(context)!.review2Comment;
+            }
+
+            // Translate placeholder dates
+            String date = review['date'];
+            if (date.contains("days ago")) {
+              int days = int.tryParse(date.split(' ')[0]) ?? 0;
+              date = AppLocalizations.of(context)!.daysAgo(days);
+            }
+
             return Container(
               margin: const EdgeInsets.only(bottom: 16),
               padding: const EdgeInsets.all(16),
@@ -1313,12 +1347,18 @@ class _ProductViewState extends State<ProductView>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        review['name'],
+                        review['name'] == "You" || review['name'] == AppLocalizations.of(context)!.you
+                            ? AppLocalizations.of(context)!.you
+                            : (review['name'] == "Rahul Sharma"
+                                ? AppLocalizations.of(context)!.review1Name
+                                : (review['name'] == "Amit Patel"
+                                    ? AppLocalizations.of(context)!.review2Name
+                                    : review['name'])),
                         style: const TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 14),
                       ),
                       Text(
-                        review['date'],
+                        date,
                         style: TextStyle(color: Colors.grey[500], fontSize: 12),
                       ),
                     ],
@@ -1327,7 +1367,7 @@ class _ProductViewState extends State<ProductView>
                   _buildRatingStars(review['rating'], size: 14),
                   const SizedBox(height: 8),
                   Text(
-                    review['comment'],
+                    comment,
                     style: const TextStyle(
                         color: Colors.black87, fontSize: 13, height: 1.4),
                   ),

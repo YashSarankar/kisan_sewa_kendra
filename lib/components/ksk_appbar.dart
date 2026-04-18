@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:kisan_sewa_kendra/generated/assets.dart';
 
+import 'package:kisan_sewa_kendra/l10n/app_localizations.dart';
 import '../controller/constants.dart';
 import '../controller/pref.dart';
 import '../controller/routers.dart';
@@ -108,14 +109,8 @@ class _KskAppbarState extends State<KskAppbar> {
                   ),
                 ),
                 onSelected: (String code) async {
-                  await Pref.setPref(key: PrefKey.lang, value: code);
+                  Constants.languageController.setLocale(code);
                   Constants.lang = code;
-                  if (!context.mounted) return;
-                  await Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) => const MyHomePage()),
-                    (route) => false,
-                  );
                 },
                 itemBuilder: (context) => Constants.languageList.map((lang) {
                   return PopupMenuItem<String>(
@@ -151,7 +146,7 @@ class _KskAppbarState extends State<KskAppbar> {
                         color: Colors.grey[500], size: 20),
                     const SizedBox(width: 12),
                     Text(
-                      "Search for products...",
+                      AppLocalizations.of(context)!.searchProducts,
                       style: TextStyle(
                           color: Colors.grey[400],
                           fontSize: 14,

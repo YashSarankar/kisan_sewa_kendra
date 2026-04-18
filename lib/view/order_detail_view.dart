@@ -7,6 +7,7 @@ import '../shopify/shopify.dart';
 import '../components/network_image.dart';
 import '../controller/cart_controller.dart';
 import '../controller/routers.dart';
+import 'package:kisan_sewa_kendra/l10n/app_localizations.dart';
 import 'cart_view.dart';
 import 'support_view.dart';
 
@@ -58,7 +59,7 @@ class _OrderDetailViewState extends State<OrderDetailView> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          "Order Summary",
+          AppLocalizations.of(context)!.orderSummary,
           style: GoogleFonts.outfit(
               color: Constants.baseColor,
               fontWeight: FontWeight.w800,
@@ -89,28 +90,32 @@ class _OrderDetailViewState extends State<OrderDetailView> {
     bool isCancelled = status == 'Cancelled';
 
     List<Map<String, dynamic>> stages = [
-      {'title': 'Order Placed', 'key': 'placed', 'active': true},
       {
-        'title': 'Processing',
+        'title': AppLocalizations.of(context)!.orderPlaced,
+        'key': 'placed',
+        'active': true
+      },
+      {
+        'title': AppLocalizations.of(context)!.processing,
         'key': 'processing',
         'active': _currentOrder.confirmed ||
             ['Shipped', 'Out for Delivery', 'Delivered', 'Completed']
                 .contains(status)
       },
       {
-        'title': 'Shipped',
+        'title': AppLocalizations.of(context)!.shipped,
         'key': 'shipped',
         'active': ['Shipped', 'Out for Delivery', 'Delivered', 'Completed']
             .contains(status)
       },
       {
-        'title': 'Out for Delivery',
+        'title': AppLocalizations.of(context)!.outForDelivery,
         'key': 'out',
         'active':
             ['Out for Delivery', 'Delivered', 'Completed'].contains(status)
       },
       {
-        'title': 'Delivered',
+        'title': AppLocalizations.of(context)!.delivered,
         'key': 'delivered',
         'active': ['Delivered', 'Completed'].contains(status)
       },
@@ -118,8 +123,12 @@ class _OrderDetailViewState extends State<OrderDetailView> {
 
     if (isCancelled) {
       stages = [
-        {'title': 'Order Placed', 'active': true},
-        {'title': 'Cancelled', 'active': true, 'isError': true},
+        {'title': AppLocalizations.of(context)!.orderPlaced, 'active': true},
+        {
+          'title': AppLocalizations.of(context)!.cancelled,
+          'active': true,
+          'isError': true
+        },
       ];
     }
 
@@ -131,7 +140,7 @@ class _OrderDetailViewState extends State<OrderDetailView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("TRACK ORDER",
+          Text(AppLocalizations.of(context)!.trackOrder,
               style: GoogleFonts.inter(
                   fontSize: 11,
                   fontWeight: FontWeight.w900,
@@ -199,7 +208,9 @@ class _OrderDetailViewState extends State<OrderDetailView> {
                             if (isActive && !isLast && !isError)
                               Padding(
                                 padding: const EdgeInsets.only(top: 2.0),
-                                child: Text("Status updated recently",
+                                child: Text(
+                                    AppLocalizations.of(context)!
+                                        .statusUpdatedRecently,
                                     style: GoogleFonts.inter(
                                         fontSize: 11,
                                         color: Colors.grey[400],
@@ -227,7 +238,7 @@ class _OrderDetailViewState extends State<OrderDetailView> {
                   }
                 },
                 icon: const Icon(Icons.open_in_new_rounded, size: 16),
-                label: const Text("Track order on Shopify"),
+                label: Text(AppLocalizations.of(context)!.trackOnShopify),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Constants.baseColor,
                   side: BorderSide(color: Constants.baseColor, width: 1.5),
@@ -259,7 +270,7 @@ class _OrderDetailViewState extends State<OrderDetailView> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("ORDER INFO",
+              Text(AppLocalizations.of(context)!.orderInfo,
                   style: GoogleFonts.inter(
                       fontSize: 11,
                       fontWeight: FontWeight.w900,
@@ -273,12 +284,14 @@ class _OrderDetailViewState extends State<OrderDetailView> {
             ],
           ),
           const SizedBox(height: 16),
-          _infoRow(Icons.calendar_today_rounded, "Placed on",
+          _infoRow(
+              Icons.calendar_today_rounded,
+              AppLocalizations.of(context)!.placedOn,
               _currentOrder.formattedDate),
           const SizedBox(height: 12),
           _infoRow(
               Icons.payment_rounded,
-              "Payment",
+              AppLocalizations.of(context)!.payment,
               _currentOrder.financialStatus.toUpperCase() == 'PENDING'
                   ? 'COD'
                   : _currentOrder.financialStatus),
@@ -296,7 +309,7 @@ class _OrderDetailViewState extends State<OrderDetailView> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
-            child: Text("YOUR ORDER ITEMS",
+            child: Text(AppLocalizations.of(context)!.yourOrderItems,
                 style: GoogleFonts.inter(
                     fontSize: 11,
                     fontWeight: FontWeight.w900,
@@ -376,20 +389,22 @@ class _OrderDetailViewState extends State<OrderDetailView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("BILL SUMMARY",
+          Text(AppLocalizations.of(context)!.billSummary,
               style: GoogleFonts.inter(
                   fontSize: 11,
                   fontWeight: FontWeight.w900,
                   color: Constants.baseColor,
                   letterSpacing: 1)),
           const SizedBox(height: 20),
-          _billRow("Item Total", _currentOrder.subtotalPrice ?? '0.00'),
+          _billRow(AppLocalizations.of(context)!.itemTotal,
+              _currentOrder.subtotalPrice ?? '0.00'),
           const SizedBox(height: 12),
-          _billRow("Delivery Charge", _currentOrder.totalShipping ?? 'FREE',
+          _billRow(AppLocalizations.of(context)!.deliveryCharge,
+              _currentOrder.totalShipping ?? 'FREE',
               isFree: _currentOrder.totalShipping == '0.00' ||
                   _currentOrder.totalShipping == null),
           const SizedBox(height: 12),
-          _billRow("Handling Fee", "0.00"),
+          _billRow(AppLocalizations.of(context)!.handlingFee, "0.00"),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
             child: Divider(height: 1),
@@ -397,7 +412,7 @@ class _OrderDetailViewState extends State<OrderDetailView> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Grand Total",
+              Text(AppLocalizations.of(context)!.grandTotal,
                   style: GoogleFonts.outfit(
                       fontSize: 18,
                       fontWeight: FontWeight.w900,
@@ -434,7 +449,7 @@ class _OrderDetailViewState extends State<OrderDetailView> {
             ),
             icon: Icon(Icons.headset_mic_outlined,
                 size: 18, color: Constants.baseColor),
-            label: Text("Need help with this order?",
+            label: Text(AppLocalizations.of(context)!.needHelp,
                 style: GoogleFonts.inter(
                     color: const Color(0xFF1E1E1E),
                     fontWeight: FontWeight.w700,
@@ -442,7 +457,10 @@ class _OrderDetailViewState extends State<OrderDetailView> {
           ),
           const SizedBox(height: 20),
           Text(
-            "Paid via ${_currentOrder.financialStatus.toUpperCase() == 'PENDING' ? 'COD' : _currentOrder.financialStatus.toUpperCase()}",
+            AppLocalizations.of(context)!.paidVia(
+                _currentOrder.financialStatus.toUpperCase() == 'PENDING'
+                    ? 'COD'
+                    : _currentOrder.financialStatus.toUpperCase()),
             style: GoogleFonts.inter(
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
@@ -457,12 +475,12 @@ class _OrderDetailViewState extends State<OrderDetailView> {
   Future<void> _handleCancelOrder() async {
     String? selectedReason;
     final reasons = [
-      "Changed my mind",
-      "Ordered by mistake",
-      "Found a better price elsewhere",
-      "Delivery time is too long",
-      "Forgot to apply coupon",
-      "Other"
+      AppLocalizations.of(context)!.reasonChangedMind,
+      AppLocalizations.of(context)!.reasonMistake,
+      AppLocalizations.of(context)!.reasonBetterPrice,
+      AppLocalizations.of(context)!.reasonLongTime,
+      AppLocalizations.of(context)!.reasonCoupon,
+      AppLocalizations.of(context)!.reasonOther,
     ];
 
     await showModalBottomSheet(
@@ -492,7 +510,7 @@ class _OrderDetailViewState extends State<OrderDetailView> {
                 ),
               ),
               Text(
-                "Cancel Order",
+                AppLocalizations.of(context)!.cancelOrder,
                 style: GoogleFonts.outfit(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
@@ -501,7 +519,7 @@ class _OrderDetailViewState extends State<OrderDetailView> {
               ),
               const SizedBox(height: 8),
               Text(
-                "Please select a reason for cancellation",
+                AppLocalizations.of(context)!.cancellationReason,
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   color: Colors.grey[600],
@@ -559,7 +577,7 @@ class _OrderDetailViewState extends State<OrderDetailView> {
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
                       child: Text(
-                        "Go Back",
+                        AppLocalizations.of(context)!.goBack,
                         style: GoogleFonts.inter(
                           fontWeight: FontWeight.w700,
                           color: Colors.grey[600],
@@ -585,7 +603,7 @@ class _OrderDetailViewState extends State<OrderDetailView> {
                         disabledForegroundColor: Colors.grey[500],
                       ),
                       child: Text(
-                        "Cancel Order",
+                        AppLocalizations.of(context)!.cancelOrder,
                         style: GoogleFonts.inter(
                           fontWeight: FontWeight.w800,
                         ),
@@ -605,8 +623,8 @@ class _OrderDetailViewState extends State<OrderDetailView> {
         if (success) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Order cancelled successfully"),
+              SnackBar(
+                content: Text(AppLocalizations.of(context)!.cancelSuccess),
                 backgroundColor: Colors.green,
                 behavior: SnackBarBehavior.floating,
               ),
@@ -617,8 +635,8 @@ class _OrderDetailViewState extends State<OrderDetailView> {
         } else {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Failed to cancel order. Please try again."),
+              SnackBar(
+                content: Text(AppLocalizations.of(context)!.cancelFail),
                 backgroundColor: Colors.red,
                 behavior: SnackBarBehavior.floating,
               ),
@@ -671,7 +689,7 @@ class _OrderDetailViewState extends State<OrderDetailView> {
                           children: [
                             const Icon(Icons.cancel_outlined, size: 16),
                             const SizedBox(width: 8),
-                            Text("Cancel",
+                            Text(AppLocalizations.of(context)!.cancelled,
                                 style: GoogleFonts.inter(
                                     fontWeight: FontWeight.w700, fontSize: 13)),
                           ],
@@ -710,7 +728,7 @@ class _OrderDetailViewState extends State<OrderDetailView> {
                       borderRadius: BorderRadius.circular(12)),
                 ),
                 icon: const Icon(Icons.refresh_rounded, size: 18),
-                label: Text("REORDER",
+                label: Text(AppLocalizations.of(context)!.reorder,
                     style: GoogleFonts.outfit(
                         fontWeight: FontWeight.w900, fontSize: 13)),
               ),
@@ -786,13 +804,13 @@ class _OrderDetailViewState extends State<OrderDetailView> {
   String _getFriendlyStatusMsg(String status) {
     status = status.toLowerCase();
     if (status.contains('delivered'))
-      return "Successfully delivered to your doorstep.";
+      return AppLocalizations.of(context)!.statusDeliveredMsg;
     if (status.contains('shipped'))
-      return "Merchant has handed over the order to courier.";
+      return AppLocalizations.of(context)!.statusShippedMsg;
     if (status.contains('processing'))
-      return "Order is being packed and prepared for pickup.";
+      return AppLocalizations.of(context)!.statusProcessingMsg;
     if (status.contains('cancelled'))
-      return "Your order was cancelled. Refund will be processed.";
-    return "Great! Looking forward to serving you.";
+      return AppLocalizations.of(context)!.statusCancelledMsg;
+    return AppLocalizations.of(context)!.statusDefaultMsg;
   }
 }

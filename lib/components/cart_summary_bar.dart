@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:kisan_sewa_kendra/l10n/app_localizations.dart';
 import '../controller/constants.dart';
 import '../controller/pref.dart';
 import '../controller/routers.dart';
@@ -181,7 +182,7 @@ class _CartSummaryBarState extends State<CartSummaryBar> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    "VIEW CART",
+                    AppLocalizations.of(context)!.viewCart.toUpperCase(),
                     style: GoogleFonts.outfit(
                       color: Colors.white,
                       fontSize: 12,
@@ -204,7 +205,7 @@ class _CartSummaryBarState extends State<CartSummaryBar> {
                       );
                     },
                     child: Text(
-                      "$_cartItemCount item${_cartItemCount > 1 ? 's' : ''} added",
+                      AppLocalizations.of(context)!.itemsAdded(_cartItemCount),
                       key: ValueKey<int>(_cartItemCount),
                       style: GoogleFonts.inter(
                         color: Colors.white.withOpacity(0.9),

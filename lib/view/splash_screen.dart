@@ -3,6 +3,7 @@ import '../controller/auth_controller.dart';
 import '../controller/constants.dart';
 import '../controller/update_service.dart';
 import 'auth/login_view.dart';
+import 'package:kisan_sewa_kendra/l10n/app_localizations.dart';
 import 'home_view.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -203,10 +204,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                               opacity: _opacityAnimation.value,
                               child: Column(
                                 children: [
-                                  const Text(
-                                    "Krishi Bhandar",
+                                  Text(
+                                    AppLocalizations.of(context)!.appBrandName,
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 34,
                                       fontWeight: FontWeight.bold,
@@ -215,7 +216,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                                   ),
                                   const SizedBox(height: 12),
                                   Text(
-                                    "हर किसान की पहचान !",
+                                    AppLocalizations.of(context)!.appTagline,
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       color: Colors.white.withOpacity(0.85),

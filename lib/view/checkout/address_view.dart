@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:kisan_sewa_kendra/l10n/app_localizations.dart';
 import '../../controller/auth_controller.dart';
 import '../../controller/constants.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:geocoding/geocoding.dart';
 
 class AddressView extends StatefulWidget {
@@ -124,8 +124,8 @@ class _AddressViewState extends State<AddressView> {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         if (mounted)
-          ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Location services are disabled.')));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(AppLocalizations.of(context)!.locationDisabled)));
         return;
       }
 
@@ -134,27 +134,45 @@ class _AddressViewState extends State<AddressView> {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
           if (mounted)
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                content: Text('Location permissions are denied.')));
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(AppLocalizations.of(context)!.locationDenied)));
           return;
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
-        if (mounted)
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(
-                  'Location permissions are permanently denied, we cannot request permissions.')));
+                  AppLocalizations.of(context)!.locationPermanentlyDenied)));
+        }
         return;
       }
 
       Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
+
+      // Set locale based on app language
+      try {
+        String localeTag =
+            Constants.lang.toLowerCase() == "hi" ? "hi_IN" : "en_US";
+        debugPrint(
+            "Fetching location with locale: $localeTag (Constants.lang: ${Constants.lang})");
+        await setLocaleIdentifier(localeTag);
+        // Small delay to ensure the native side processes the locale change
+        await Future.delayed(const Duration(milliseconds: 200));
+      } catch (e) {
+        debugPrint("Geocoding locale error: $e");
+      }
+
       List<Placemark> placemarks =
           await placemarkFromCoordinates(position.latitude, position.longitude);
 
+      debugPrint("Placemarks found: ${placemarks.length}");
       if (placemarks.isNotEmpty) {
         Placemark place = placemarks[0];
+        debugPrint(
+            "Place details: name=${place.name}, locality=${place.locality}, street=${place.street}");
         if (mounted) {
           setState(() {
             _address1Controller.text = '${place.name}, ${place.subLocality}'
@@ -176,8 +194,9 @@ class _AddressViewState extends State<AddressView> {
     } catch (e) {
       debugPrint('Error getting location: $e');
       if (mounted)
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to get location: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content:
+                Text('${AppLocalizations.of(context)!.locationFailed}: $e')));
     } finally {
       if (mounted) setState(() => _isFetchingLocation = false);
     }
@@ -287,7 +306,9 @@ class _AddressViewState extends State<AddressView> {
                 borderSide: const BorderSide(color: Colors.redAccent)),
           ),
           validator: validator ??
-              (v) => (v == null || v.isEmpty) ? 'This field is required' : null,
+              (v) => (v == null || v.isEmpty)
+                  ? AppLocalizations.of(context)!.fieldRequired
+                  : null,
         ),
         const SizedBox(height: 20),
       ],
@@ -318,7 +339,7 @@ class _AddressViewState extends State<AddressView> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('New Delivery Address',
+                          Text(AppLocalizations.of(context)!.newDeliveryAddress,
                               style: GoogleFonts.outfit(
                                   fontWeight: FontWeight.w800,
                                   fontSize: 18,
@@ -337,24 +358,26 @@ class _AddressViewState extends State<AddressView> {
                           Expanded(
                             child: _buildField(
                               controller: _firstNameController,
-                              label: 'First Name',
-                              hint: 'John',
+                              label: AppLocalizations.of(context)!.firstName,
+                              hint: AppLocalizations.of(context)!
+                                  .placeholderFirstName,
                             ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: _buildField(
                               controller: _lastNameController,
-                              label: 'Last Name',
-                              hint: 'Doe',
+                              label: AppLocalizations.of(context)!.lastName,
+                              hint: AppLocalizations.of(context)!
+                                  .placeholderLastName,
                             ),
                           ),
                         ],
                       ),
                       _buildField(
                         controller: _phoneController,
-                        label: 'Phone Number',
-                        hint: 'Enter Phone Number',
+                        label: AppLocalizations.of(context)!.phoneNumber,
+                        hint: AppLocalizations.of(context)!.enterPhoneNumber,
                         keyboardType: TextInputType.phone,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
@@ -362,9 +385,10 @@ class _AddressViewState extends State<AddressView> {
                         ],
                         validator: (v) {
                           if (v == null || v.isEmpty)
-                            return 'Please enter phone number';
+                            return AppLocalizations.of(context)!
+                                .errPhoneRequired;
                           if (v.length != 10)
-                            return 'Enter valid 10-digit number';
+                            return AppLocalizations.of(context)!.errPhoneValid;
                           return null;
                         },
                       ),
@@ -384,8 +408,9 @@ class _AddressViewState extends State<AddressView> {
                                   size: 18, color: Constants.baseColor),
                           label: Text(
                             _isFetchingLocation
-                                ? 'Locating...'
-                                : 'Use Current Location',
+                                ? AppLocalizations.of(context)!.locating
+                                : AppLocalizations.of(context)!
+                                    .useCurrentLocation,
                             style: GoogleFonts.inter(
                                 color: Constants.baseColor,
                                 fontWeight: FontWeight.w700,
@@ -405,8 +430,8 @@ class _AddressViewState extends State<AddressView> {
                       const SizedBox(height: 24),
                       _buildField(
                         controller: _pincodeController,
-                        label: 'Pincode',
-                        hint: '411001',
+                        label: AppLocalizations.of(context)!.pincode,
+                        hint: AppLocalizations.of(context)!.placeholderPincode,
                         keyboardType: TextInputType.number,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly
@@ -428,13 +453,13 @@ class _AddressViewState extends State<AddressView> {
                       ),
                       _buildField(
                         controller: _address1Controller,
-                        label: 'Address Line 1',
-                        hint: 'House no., Street, Area',
+                        label: AppLocalizations.of(context)!.addressLine1,
+                        hint: AppLocalizations.of(context)!.addressLine1Hint,
                       ),
                       _buildField(
                         controller: _address2Controller,
-                        label: 'Address Line 2 (Optional)',
-                        hint: 'Landmark, Colony, etc.',
+                        label: AppLocalizations.of(context)!.addressLine2,
+                        hint: AppLocalizations.of(context)!.addressLine2Hint,
                         validator: (_) => null,
                       ),
                       Row(
@@ -442,8 +467,9 @@ class _AddressViewState extends State<AddressView> {
                           Expanded(
                             child: _buildField(
                               controller: _cityController,
-                              label: 'City / District',
-                              hint: 'Pune',
+                              label: AppLocalizations.of(context)!.cityDistrict,
+                              hint:
+                                  AppLocalizations.of(context)!.placeholderCity,
                               readOnly: _cityController.text.isNotEmpty,
                             ),
                           ),
@@ -451,8 +477,9 @@ class _AddressViewState extends State<AddressView> {
                           Expanded(
                             child: _buildField(
                               controller: _stateController,
-                              label: 'State',
-                              hint: 'Maharashtra',
+                              label: AppLocalizations.of(context)!.state,
+                              hint: AppLocalizations.of(context)!
+                                  .placeholderState,
                               readOnly: _stateController.text.isNotEmpty,
                             ),
                           ),
@@ -462,7 +489,7 @@ class _AddressViewState extends State<AddressView> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Delivery Address',
+                          Text(AppLocalizations.of(context)!.deliveryAddress,
                               style: GoogleFonts.outfit(
                                   fontWeight: FontWeight.w800,
                                   fontSize: 18,
@@ -483,7 +510,7 @@ class _AddressViewState extends State<AddressView> {
                             },
                             icon: const Icon(Icons.add_circle_outline_rounded,
                                 size: 18),
-                            label: Text('Add New',
+                            label: Text(AppLocalizations.of(context)!.addNew,
                                 style: GoogleFonts.inter(
                                     fontWeight: FontWeight.w700)),
                             style: TextButton.styleFrom(
@@ -642,7 +669,7 @@ class _AddressViewState extends State<AddressView> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    "Select Address",
+                    AppLocalizations.of(context)!.selectAddress,
                     style: GoogleFonts.inter(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
@@ -655,7 +682,7 @@ class _AddressViewState extends State<AddressView> {
                           size: 12, color: Constants.baseColor),
                       const SizedBox(width: 4),
                       Text(
-                        "Pure Organic Agriculture",
+                        AppLocalizations.of(context)!.appTagline,
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
@@ -716,7 +743,9 @@ class _AddressViewState extends State<AddressView> {
                     child: CircularProgressIndicator(
                         color: Colors.white, strokeWidth: 2.5))
                 : Text(
-                    _isAddingAddress ? 'SAVE & CONFIRM' : 'CONFIRM ADDRESS',
+                    _isAddingAddress
+                        ? AppLocalizations.of(context)!.saveAndConfirm
+                        : AppLocalizations.of(context)!.confirmAddress,
                     style: GoogleFonts.outfit(
                         fontWeight: FontWeight.w800,
                         fontSize: 15,

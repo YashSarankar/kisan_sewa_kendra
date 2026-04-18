@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:kisan_sewa_kendra/components/widget_button.dart';
+import 'package:kisan_sewa_kendra/l10n/app_localizations.dart';
 import 'package:kisan_sewa_kendra/view/cart_view.dart';
 
 import '../controller/constants.dart';
@@ -159,7 +160,7 @@ class ProductsGridState extends State<ProductsGrid>
             Icon(Icons.inventory_2_outlined, size: 48, color: Colors.grey[300]),
             const SizedBox(height: 16),
             Text(
-              "No products found in this category",
+              AppLocalizations.of(context)!.noProductsFound,
               style: GoogleFonts.inter(
                 color: Colors.grey[500],
                 fontSize: 14,
@@ -267,8 +268,8 @@ class ProductsGridState extends State<ProductsGrid>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          const Text("Sort By",
-              style: TextStyle(
+          Text(AppLocalizations.of(context)!.sortBy,
+              style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: Colors.black54)),
@@ -291,10 +292,12 @@ class ProductsGridState extends State<ProductsGrid>
               });
             },
             itemBuilder: (context) => [
-              const PopupMenuItem(
-                  value: "a-z", child: Text("Alphabetically A-Z")),
-              const PopupMenuItem(
-                  value: "z-a", child: Text("Alphabetically Z-A")),
+              PopupMenuItem(
+                  value: "a-z",
+                  child: Text(AppLocalizations.of(context)!.aToZ)),
+              PopupMenuItem(
+                  value: "z-a",
+                  child: Text(AppLocalizations.of(context)!.zToA)),
             ],
           ),
         ],
@@ -306,26 +309,55 @@ class ProductsGridState extends State<ProductsGrid>
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[200]!),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.grey[100]!),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(flex: 3, child: Constants.shimmer()),
           Expanded(
-            flex: 2,
+            flex: 6,
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              width: double.infinity,
+              child: Constants.shimmer(),
+            ),
+          ),
+          Expanded(
+            flex: 4,
             child: Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.fromLTRB(10, 4, 10, 6),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Constants.shimmer(height: 12, width: double.infinity),
+                  Constants.shimmer(height: 12, width: 40), // For rating pill
                   const SizedBox(height: 8),
-                  Constants.shimmer(height: 12, width: 80),
+                  Constants.shimmer(height: 14, width: double.infinity), // Title line 1
+                  const SizedBox(height: 4),
+                  Constants.shimmer(height: 14, width: 100), // Title line 2
                   const Spacer(),
-                  Constants.shimmer(height: 18, width: 60),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Constants.shimmer(height: 10, width: 40),
+                          const SizedBox(height: 4),
+                          Constants.shimmer(height: 18, width: 60),
+                        ],
+                      ),
+                      Constants.shimmer(height: 32, width: 60), // Add button
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -485,11 +517,13 @@ class _ProductCardState extends State<ProductCard> {
                 children: [
                   Container(
                     width: double.infinity,
+                    height: double.infinity,
                     color: Colors.white,
                     padding: const EdgeInsets.all(10),
                     child: KskNetworkImage(
                       widget.product.image ?? '',
                       width: double.infinity,
+                      height: double.infinity,
                       fit: BoxFit.contain,
                     ),
                   ),
@@ -586,7 +620,7 @@ class _ProductCardState extends State<ProductCard> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Text(
-                                      "ADD",
+                                      AppLocalizations.of(context)!.add,
                                       style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w900,
@@ -594,7 +628,7 @@ class _ProductCardState extends State<ProductCard> {
                                     ),
                                     if (widget.product.variants.length > 1)
                                       Text(
-                                        "Options",
+                                        AppLocalizations.of(context)!.options,
                                         style: TextStyle(
                                             fontSize: 7,
                                             fontWeight: FontWeight.bold,
@@ -668,9 +702,9 @@ class _ProductCardState extends State<ProductCard> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
-                            "Select Option",
-                            style: TextStyle(
+                          Text(
+                            AppLocalizations.of(context)!.selectOption,
+                            style: const TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.w900),
                           ),
                           IconButton(
@@ -792,7 +826,7 @@ class _ProductCardState extends State<ProductCard> {
                                                   BorderRadius.circular(8),
                                             ),
                                             child: Text(
-                                              "ADD",
+                                              AppLocalizations.of(context)!.add,
                                               style: TextStyle(
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.w900,
@@ -1028,7 +1062,7 @@ class _ProductCardState extends State<ProductCard> {
               ],
             ),
             child: Text(
-              "${per.toInt()}% OFF",
+              AppLocalizations.of(context)!.off(per.toInt().toString()),
               style: const TextStyle(
                   color: Colors.white,
                   fontSize: 10,

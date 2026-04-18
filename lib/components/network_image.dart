@@ -79,8 +79,12 @@ class _KskNetworkImageState extends State<KskNetworkImage> {
         opacity: 0.2,
         child: Image.asset(
           Assets.assetsLogo,
-          height: widget.height != null ? widget.height! * 0.4 : 40,
-          width: widget.width != null ? widget.width! * 0.4 : 40,
+          height: (widget.height != null && widget.height != double.infinity)
+              ? widget.height! * 0.4
+              : 40,
+          width: (widget.width != null && widget.width != double.infinity)
+              ? widget.width! * 0.4
+              : 40,
           fit: BoxFit.contain,
         ),
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../home_view.dart';
+import 'package:kisan_sewa_kendra/l10n/app_localizations.dart';
 import '../../controller/constants.dart';
 
 class OrderSuccessView extends StatefulWidget {
@@ -85,9 +86,9 @@ class _OrderSuccessViewState extends State<OrderSuccessView>
                 ),
                 const SizedBox(height: 32),
 
-                const Text(
-                  'Order Placed!',
-                  style: TextStyle(
+                Text(
+                  AppLocalizations.of(context)!.orderPlaced,
+                  style: const TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.w800,
                     color: Color(0xFF1a1a1a),
@@ -95,7 +96,7 @@ class _OrderSuccessViewState extends State<OrderSuccessView>
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Thank you for shopping with ${Constants.title}. Your order has been confirmed.',
+                  AppLocalizations.of(context)!.orderSuccessMsg(AppLocalizations.of(context)!.appBrandName),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 15,
@@ -118,27 +119,27 @@ class _OrderSuccessViewState extends State<OrderSuccessView>
                   ),
                   child: Column(
                     children: [
-                      _buildDetailRow('Order Number', widget.orderNumber),
+                      _buildDetailRow(AppLocalizations.of(context)!.orderNumber, widget.orderNumber),
                       const SizedBox(height: 14),
                       _buildDetailRow(
                         widget.paymentId == "Cash on Delivery"
-                            ? 'Amount Pending'
-                            : 'Amount Paid',
+                            ? AppLocalizations.of(context)!.amountPending
+                            : AppLocalizations.of(context)!.amountPaid,
                         '₹${widget.totalAmount.toStringAsFixed(2)}',
                         isHighlight: true,
                       ),
                       const SizedBox(height: 14),
                       _buildDetailRow(
-                        'Payment Method',
+                        AppLocalizations.of(context)!.paymentMethod,
                         widget.paymentId == "Cash on Delivery"
-                            ? 'Cash on Delivery'
-                            : 'Online Payment',
+                            ? AppLocalizations.of(context)!.cod
+                            : AppLocalizations.of(context)!.onlinePayment,
                         isSmall: true,
                       ),
                       if (widget.paymentId != "Cash on Delivery" &&
                           widget.paymentId != "Online") ...[
                         const SizedBox(height: 14),
-                        _buildDetailRow('Payment ID', widget.paymentId,
+                        _buildDetailRow(AppLocalizations.of(context)!.paymentId, widget.paymentId,
                             isSmall: true),
                       ],
                     ],
@@ -155,7 +156,7 @@ class _OrderSuccessViewState extends State<OrderSuccessView>
                         color: Constants.baseColor, size: 18),
                     const SizedBox(width: 8),
                     Text(
-                      'You will receive a confirmation email shortly',
+                      AppLocalizations.of(context)!.confirmationEmailMsg,
                       style:
                           TextStyle(fontSize: 13, color: Colors.grey.shade500),
                     ),
@@ -184,10 +185,10 @@ class _OrderSuccessViewState extends State<OrderSuccessView>
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                    child: const Text(
-                      'Continue Shopping',
+                    child: Text(
+                      AppLocalizations.of(context)!.continueShopping,
                       style:
-                          TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+                          const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
                     ),
                   ),
                 ),

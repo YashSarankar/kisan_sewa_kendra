@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../components/cart_icon.dart';
 import '../../components/network_image.dart';
 import '../../components/widget_button.dart';
 import '../../controller/constants.dart';
 import '../../controller/routers.dart';
 import '../../model/categories_model.dart';
 import '../../shopify/shopify.dart';
+import 'package:kisan_sewa_kendra/l10n/app_localizations.dart';
 import '../collection_view.dart';
 
 class Categories extends StatefulWidget {
@@ -124,7 +124,7 @@ class _CategoriesState extends State<Categories>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Shop by Category",
+                          AppLocalizations.of(context)!.shopByCategory,
                           style: GoogleFonts.outfit(
                             fontSize: 26,
                             fontWeight: FontWeight.w900,
@@ -143,7 +143,8 @@ class _CategoriesState extends State<Categories>
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
-                                "${_categories.length} CATEGORIES",
+                                AppLocalizations.of(context)!
+                                    .categoryCount(_categories.length),
                                 style: GoogleFonts.inter(
                                   fontSize: 9,
                                   fontWeight: FontWeight.w900,
@@ -154,7 +155,7 @@ class _CategoriesState extends State<Categories>
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              "Premium Selection",
+                              AppLocalizations.of(context)!.premiumSelection,
                               style: GoogleFonts.inter(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
@@ -165,13 +166,7 @@ class _CategoriesState extends State<Categories>
                         ),
                       ],
                     ),
-                    Row(
-                      children: [
-                        const KskCartIcon(),
-                        const SizedBox(width: 12),
-                        _buildStatIndicator(),
-                      ],
-                    ),
+                    _buildStatIndicator(),
                   ],
                 ),
               ),
@@ -364,7 +359,7 @@ class _CategoriesState extends State<Categories>
             ),
           ),
           Text(
-            "TOTAL",
+            AppLocalizations.of(context)!.total,
             style: GoogleFonts.inter(
               fontSize: 7,
               fontWeight: FontWeight.w900,

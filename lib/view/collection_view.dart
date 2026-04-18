@@ -3,14 +3,14 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:kisan_sewa_kendra/components/cart_icon.dart';
 import 'package:kisan_sewa_kendra/components/products_grid.dart';
 import 'package:kisan_sewa_kendra/controller/constants.dart';
 import 'package:kisan_sewa_kendra/shopify/shopify.dart';
 
-import '../components/cart_icon.dart';
 import '../controller/pref.dart';
-import '../view/cart_view.dart';
 import '../controller/routers.dart';
+import 'package:kisan_sewa_kendra/l10n/app_localizations.dart';
 import 'dart:async';
 
 class CollectionView extends StatefulWidget {
@@ -88,7 +88,8 @@ class _CollectionViewState extends State<CollectionView>
 
   _init() async {
     if (!mounted) return;
-    var col = await ShopifyAPI.getCollection(id: widget.collectionId);
+    var col =
+        await Shopify.getCollectionDetails(context, id: widget.collectionId);
     if (mounted && widget.title == null) {
       setState(() {
         _title = "${col['title'] ?? ''}";
@@ -186,7 +187,9 @@ class _CollectionViewState extends State<CollectionView>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      _title.isNotEmpty ? _title : "Collection",
+                      _title.isNotEmpty
+                          ? _title
+                          : AppLocalizations.of(context)!.collection,
                       style: GoogleFonts.outfit(
                         fontSize: 18,
                         fontWeight: FontWeight.w900,
@@ -197,7 +200,7 @@ class _CollectionViewState extends State<CollectionView>
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      "KrishiKranti Organics • Pure Selection",
+                      AppLocalizations.of(context)!.pureSelection,
                       style: GoogleFonts.inter(
                         fontSize: 9,
                         fontWeight: FontWeight.w700,
@@ -236,7 +239,7 @@ class _CollectionViewState extends State<CollectionView>
               Icon(Icons.sort_by_alpha_rounded,
                   size: 18, color: Constants.baseColor),
               const SizedBox(width: 10),
-              Text("A → Z",
+              Text(AppLocalizations.of(context)!.aToZ,
                   style: GoogleFonts.inter(
                       fontSize: 13, fontWeight: FontWeight.w600)),
             ],
@@ -249,7 +252,7 @@ class _CollectionViewState extends State<CollectionView>
               Icon(Icons.sort_by_alpha_rounded,
                   size: 18, color: Constants.baseColor),
               const SizedBox(width: 10),
-              Text("Z → A",
+              Text(AppLocalizations.of(context)!.zToA,
                   style: GoogleFonts.inter(
                       fontSize: 13, fontWeight: FontWeight.w600)),
             ],
@@ -262,7 +265,7 @@ class _CollectionViewState extends State<CollectionView>
               Icon(Icons.restart_alt_rounded,
                   size: 18, color: Colors.grey[500]),
               const SizedBox(width: 10),
-              Text("Default",
+              Text(AppLocalizations.of(context)!.defaultText,
                   style: GoogleFonts.inter(
                       fontSize: 13, fontWeight: FontWeight.w600)),
             ],
