@@ -9,6 +9,7 @@ import 'package:kisan_sewa_kendra/l10n/app_localizations.dart';
 import 'package:kisan_sewa_kendra/view/cart_view.dart';
 import 'package:kisan_sewa_kendra/view/collection_view.dart';
 import 'package:kisan_sewa_kendra/view/component/categories.dart';
+import 'package:kisan_sewa_kendra/view/search_results_view.dart';
 
 import 'dart:async';
 import 'dart:convert';
@@ -717,7 +718,7 @@ class _ProductViewState extends State<ProductView>
                 Container(height: 6, color: const Color(0xFFF4F6F8)),
 
                 // --- How to Use ---
-                Container(color: Colors.white, child: _buildHowToUseSection()),
+                // Container(color: Colors.white, child: _buildHowToUseSection()),
 
                 Container(height: 6, color: const Color(0xFFF4F6F8)),
 
@@ -753,7 +754,12 @@ class _ProductViewState extends State<ProductView>
                         const SizedBox(width: 12),
                         GestureDetector(
                           onTap: () {
-                            if (product.collectionId != null &&
+                            if (product.productType.isNotEmpty) {
+                              Routers.goTO(context,
+                                  toBody: SearchResultsView(
+                                      query: product.productType,
+                                      title: product.productType));
+                            } else if (product.collectionId != null &&
                                 product.collectionId!.isNotEmpty) {
                               Routers.goTO(context,
                                   toBody: CollectionView(
