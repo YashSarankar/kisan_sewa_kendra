@@ -561,7 +561,6 @@ class ShopifyAPI {
         "total_price": totalAmount.toStringAsFixed(2),
         "currency": "INR",
         "phone": cleanPhone,
-        "customer": {"id": int.parse(customerId ?? "0")},
         "note_attributes": [
           {
             "name": "payment_id",
@@ -620,7 +619,6 @@ class ShopifyAPI {
           final int cleanId = int.parse(customerId.split('/').last);
           orderPayload["customer"] = {
             "id": cleanId,
-            "phone": cleanPhone,
           };
         } catch (_) {}
       }
