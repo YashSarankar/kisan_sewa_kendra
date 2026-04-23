@@ -262,5 +262,6 @@
   "clearCartConfirm": "Clear Cart?",
   "clearCartConfirmMsg": "Are you sure you want to remove all items from your cart?",
   "cancel": "CANCEL",
-  "addFollowingToGetFree": "Add following to get free:"
+  "addFollowingToGetFree": "Add following to get free:",
+  "loading": "Loading..."
 }

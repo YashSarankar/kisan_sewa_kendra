@@ -29,12 +29,15 @@ import '../utils/meta_events.dart';
 import '../utils/firebase_events.dart';
 
 class ProductView extends StatefulWidget {
-  final ProductModel product;
+  final ProductModel? product;
+  final String? id;
 
   const ProductView({
     super.key,
-    required this.product,
-  });
+    this.product,
+    this.id,
+  }) : assert(product != null || id != null,
+            'Either product or id must be provided');
 
   @override
   State<ProductView> createState() => _ProductViewState();
@@ -84,31 +87,28 @@ class _ProductViewState extends State<ProductView>
     _tabController.addListener(() {
       if (mounted) setState(() {});
     });
+
+    // If we only have an ID, we'll fetch the full product in _init
+    if (widget.product != null) {
+      // FB Event: View Content
+      MetaEvents.viewContent(
+        id: widget.product!.id,
+        name: widget.product!.title,
+        price: widget.product!.variants.isNotEmpty
+            ? widget.product!.variants.first.price
+            : '0',
+      );
+
+      // Firebase Event: view_item
+      FirebaseEvents.viewItem(
+        widget.product!.id,
+        widget.product!.variants.isNotEmpty
+            ? widget.product!.variants.first.price
+            : '0',
+      );
+    }
+
     Future.delayed(Duration.zero, _init);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        setState(() {
-          _enableAutoPlay = true;
-        });
-      }
-    });
-
-    // FB Event: View Content
-    MetaEvents.viewContent(
-      id: widget.product.id,
-      name: widget.product.title,
-      price: widget.product.variants.isNotEmpty
-          ? widget.product.variants.first.price
-          : '0',
-    );
-
-    // Firebase Event: view_item
-    FirebaseEvents.viewItem(
-      widget.product.id,
-      widget.product.variants.isNotEmpty
-          ? widget.product.variants.first.price
-          : '0',
-    );
 
     Constants.languageController.addListener(_onLanguageChanged);
   }
@@ -152,8 +152,9 @@ class _ProductViewState extends State<ProductView>
   }
 
   int _getCartQuantity() {
-    if (widget.product.variants.isEmpty) return 0;
-    final variant = widget.product.variants[_varientIndex];
+    final product = _localizedProduct ?? widget.product;
+    if (product == null || product.variants.isEmpty) return 0;
+    final variant = product.variants[_varientIndex];
     for (var item in _cartItems) {
       if (item['id'].toString() == variant.id.toString()) {
         return int.tryParse(item['qty'].toString()) ?? 0;
@@ -163,23 +164,46 @@ class _ProductViewState extends State<ProductView>
   }
 
   Future<void> _init() async {
+    final productId = widget.product?.id.toString() ?? widget.id;
+    if (productId == null) return;
+
     final localized = await Shopify.getProductDetails(
       context,
-      productId: widget.product.id.toString(),
+      productId: productId,
     );
     _recommend = await Shopify.getProductsRecommend(
       context,
-      id: widget.product.id.toString(),
+      id: productId,
     );
+
+    if (widget.product == null && localized != null) {
+      // Log events for deep-linked product once loaded
+      MetaEvents.viewContent(
+        id: localized.id,
+        name: localized.title,
+        price: localized.variants.isNotEmpty
+            ? localized.variants.first.price
+            : '0',
+      );
+      FirebaseEvents.viewItem(
+        localized.id,
+        localized.variants.isNotEmpty ? localized.variants.first.price : '0',
+      );
+    }
+
     if (mounted) {
       setState(() {
         _localizedProduct = localized;
+        _enableAutoPlay = true;
       });
     }
   }
 
   Widget _buildQuantitySelector(int currentQty) {
-    final variant = widget.product.variants[_varientIndex];
+    final product = _localizedProduct ?? widget.product;
+    if (product == null || product.variants.isEmpty)
+      return const SizedBox.shrink();
+    final variant = product.variants[_varientIndex];
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
@@ -353,10 +377,10 @@ class _ProductViewState extends State<ProductView>
     super.build(context);
     final product = _localizedProduct ?? widget.product;
 
-    if (product.variants.isEmpty) {
+    if (product == null || product.variants.isEmpty) {
       return Scaffold(
         appBar: AppBar(
-          title: Text(product.title,
+          title: Text(product?.title ?? AppLocalizations.of(context)!.loading,
               style: const TextStyle(
                   fontWeight: FontWeight.w800,
                   fontSize: 18,
@@ -825,25 +849,30 @@ class _ProductViewState extends State<ProductView>
                     ? _buildQuantitySelector(_getCartQuantity())
                     : ElevatedButton(
                         onPressed: () async {
+                          final p = _localizedProduct ?? widget.product;
+                          if (p == null) return;
+                          final v = p.variants.length > _varientIndex
+                              ? p.variants[_varientIndex]
+                              : p.variants.first;
+
                           // Meta Event: Add to Cart
                           MetaEvents.addToCart(
-                            id: widget.product.id,
-                            name: widget.product.title,
-                            price: variant.price,
+                            id: p.id,
+                            name: p.title,
+                            price: v.price,
                           );
 
                           // Firebase Event: add_to_cart
-                          FirebaseEvents.addToCart(
-                              widget.product.id, variant.price);
+                          FirebaseEvents.addToCart(p.id, v.price);
 
                           await CartController.addToCart(
-                            variantId: variant.id,
-                            productId: product.id,
+                            variantId: v.id,
+                            productId: p.id,
                             qty: 1,
-                            title: product.title,
-                            price: variant.price,
-                            image: product.image,
-                            variantTitle: variant.title,
+                            title: p.title,
+                            price: v.price,
+                            image: p.image,
+                            variantTitle: v.title,
                           );
                           if (!context.mounted) return;
                           _updateCartCount();
@@ -890,44 +919,36 @@ class _ProductViewState extends State<ProductView>
                 height: 52,
                 child: ElevatedButton(
                   onPressed: () async {
-                    final variantId =
-                        int.tryParse(variant.id.split('/').last) ?? 0;
-                    final productId =
-                        int.tryParse(widget.product.id.split('/').last) ?? 0;
+                    final p = _localizedProduct ?? widget.product;
+                    if (p == null) return;
+                    final v = p.variants.length > _varientIndex
+                        ? p.variants[_varientIndex]
+                        : p.variants.first;
+
+                    final variantId = int.tryParse(v.id.split('/').last) ?? 0;
+                    final productId = int.tryParse(p.id.split('/').last) ?? 0;
 
                     double price = double.tryParse(
-                            variant.price.replaceAll(RegExp(r'[^\d.]'), '')) ??
+                            v.price.replaceAll(RegExp(r'[^\d.]'), '')) ??
                         0.0;
 
                     // Meta Event: Initiate Checkout
                     MetaEvents.initiateCheckout(
                       totalValue: price,
-                      contentIds: widget.product.id,
+                      contentIds: p.id,
                     );
 
                     // Firebase Event: begin_checkout
                     FirebaseEvents.beginCheckout(price);
 
-                    final cartData = [
-                      {
-                        "id": variantId,
-                        "quantity": 1,
-                        "variant_id": variantId,
-                        "product_id": productId,
-                        "title": widget.product.title,
-                        "price": price,
-                        "image": widget.product.image
-                      }
-                    ];
-
                     await CartController.addToCart(
-                      variantId: variant.id,
-                      productId: product.id,
+                      variantId: v.id,
+                      productId: p.id,
                       qty: 1,
-                      title: product.title,
-                      price: variant.price,
-                      image: product.image,
-                      variantTitle: variant.title,
+                      title: p.title,
+                      price: v.price,
+                      image: p.image,
+                      variantTitle: v.title,
                     );
                     if (!context.mounted) return;
                     Routers.goTO(context, toBody: const CartView());
@@ -960,6 +981,8 @@ class _ProductViewState extends State<ProductView>
 
   Widget _buildOverviewContent() {
     final product = _localizedProduct ?? widget.product;
+    if (product == null) return const SizedBox.shrink();
+
     final Map<String, String> details = {
       AppLocalizations.of(context)!.productName: product.title,
       AppLocalizations.of(context)!.brand: "KrishiKranti Organics",
@@ -1018,7 +1041,7 @@ class _ProductViewState extends State<ProductView>
 
   Widget _buildDescriptionContent() {
     final product = _localizedProduct ?? widget.product;
-    if (product.body.isEmpty) {
+    if (product == null || product.body.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(40),
         child: Center(

@@ -1,6 +1,8 @@
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:appsflyer_sdk/appsflyer_sdk.dart';
+import 'package:kisan_sewa_kendra/services/attribution_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -14,6 +16,12 @@ import 'utils/notification_service.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'controller/language_controller.dart';
 import 'view/splash_screen.dart';
+import 'view/product_view.dart';
+import 'view/collection_view.dart';
+import 'view/cart_view.dart';
+import 'view/home_view.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -49,8 +57,72 @@ void main() async {
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     await NotificationService.init();
 
+    // TEMPORARY: Print token for testing
+    FirebaseMessaging.instance.getToken().then((token) {
+      debugPrint("📱 YOUR FCM TOKEN: $token");
+    });
+
+    // Push Notification Attribution
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      AttributionService().handlePushNotification(message);
+    });
+    FirebaseMessaging.instance
+        .getInitialMessage()
+        .then((RemoteMessage? message) {
+      if (message != null) {
+        AttributionService().handlePushNotification(message);
+      }
+    });
+
     // Initialize Meta Events
     await MetaEvents.init();
+
+    // Initialize AppsFlyer SDK
+    AppsFlyerOptions options = AppsFlyerOptions(
+      afDevKey: "uphcn8e9ZxH7a38qCXQEcd",
+      showDebug: false,
+      timeToWaitForATTUserAuthorization: 15,
+    );
+
+    AppsflyerSdk appsflyerSdk = AppsflyerSdk(options);
+    await appsflyerSdk.initSdk(
+      registerConversionDataCallback: true,
+      registerOnAppOpenAttributionCallback: true,
+      registerOnDeepLinkingCallback: true,
+    );
+
+    // Step 6.1 — Add onDeepLinking Handler
+    appsflyerSdk.onDeepLinking((DeepLinkResult dp) {
+      if (dp.status == Status.FOUND) {
+        final deepLinkValue = dp.deepLink?.deepLinkValue;
+        final params = dp.deepLink?.clickEvent;
+
+        switch (deepLinkValue) {
+          case 'product':
+            final productId = params?['product_id'];
+            if (productId != null) {
+              navigatorKey.currentState?.pushNamed('/product/$productId');
+            }
+            break;
+          case 'category':
+            final category = params?['category'];
+            if (category != null) {
+              navigatorKey.currentState?.pushNamed('/category/$category');
+            }
+            break;
+          case 'offer':
+            navigatorKey.currentState?.pushNamed('/offers');
+            break;
+          case 'cart':
+            navigatorKey.currentState?.pushNamed('/cart');
+            break;
+          default:
+            navigatorKey.currentState?.pushNamed('/home');
+        }
+      }
+    });
+
+    await AttributionService().init(appsflyerSdk);
 
     final languageController = LanguageController();
     Constants.languageController = languageController;
@@ -124,6 +196,34 @@ class MyApp extends StatelessWidget {
               backgroundColor: Colors.white,
             ),
           ),
+          navigatorKey: navigatorKey,
+          onGenerateRoute: (settings) {
+            final name = settings.name ?? '';
+            if (name.startsWith('/product/')) {
+              final id = name.replaceFirst('/product/', '');
+              return MaterialPageRoute(
+                builder: (context) => ProductView(id: id),
+              );
+            }
+            if (name.startsWith('/category/')) {
+              final id = name.replaceFirst('/category/', '');
+              return MaterialPageRoute(
+                builder: (context) => CollectionView(collectionId: id),
+              );
+            }
+            if (name == '/cart') {
+              return MaterialPageRoute(
+                builder: (context) => const CartView(),
+              );
+            }
+            if (name == '/home') {
+              return MaterialPageRoute(
+                builder: (context) => const MyHomePage(),
+              );
+            }
+            // Add other routes as needed
+            return null;
+          },
           home: const SplashScreen(),
         );
       },

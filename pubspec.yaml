@@ -46,6 +46,7 @@ dependencies:
   google_fonts: ^8.0.2
   carousel_slider: ^5.1.2
   font_awesome_flutter: ^11.0.0
+  appsflyer_sdk: ^6.17.9+1-rc1
 
 dev_dependencies:
   flutter_test:

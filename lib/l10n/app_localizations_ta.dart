@@ -858,4 +858,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get addFollowingToGetFree => 'Add following to get free:';
+
+  @override
+  String get loading => 'Loading...';
 }

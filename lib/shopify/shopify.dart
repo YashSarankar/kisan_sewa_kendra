@@ -10,6 +10,7 @@ import '../controller/pref.dart';
 import '../model/categories_model.dart';
 import '../model/localization_model.dart';
 import '../model/product_model.dart';
+import '../services/attribution_service.dart';
 
 class ShopifyAPI {
   static const String _baseUrl =
@@ -144,10 +145,11 @@ class ShopifyAPI {
                     'INR';
               }
 
-              final usedCodes = (node['discountApplications']?['nodes'] as List? ?? [])
-                  .map((d) => d['code']?.toString().toUpperCase())
-                  .where((c) => c != null)
-                  .toList();
+              final usedCodes =
+                  (node['discountApplications']?['nodes'] as List? ?? [])
+                      .map((d) => d['code']?.toString().toUpperCase())
+                      .where((c) => c != null)
+                      .toList();
 
               orders.add({
                 'id': node['id'].toString(),
@@ -565,7 +567,11 @@ class ShopifyAPI {
             "name": "payment_id",
             "value": paymentId ?? (isCod ? "COD" : "Online")
           },
-          {"name": "channel", "value": "Mobile App"}
+          {"name": "channel", "value": "Mobile App"},
+          ...(await AttributionService().getAttribution())
+              .entries
+              .map((e) => {"name": e.key, "value": e.value})
+              .toList(),
         ],
         "shipping_address": {
           "first_name":
@@ -587,7 +593,7 @@ class ShopifyAPI {
         "inventory_behavior": "decrement_ignoring_policy",
         "send_receipt": true,
       };
-      
+
       if (discountCode != null && discountCode.isNotEmpty) {
         orderPayload["discount_codes"] = [
           {
@@ -597,7 +603,7 @@ class ShopifyAPI {
           }
         ];
       }
-      
+
       if (discountAmount != null && discountAmount > 0) {
         orderPayload["total_discounts"] = discountAmount.toStringAsFixed(2);
       }
@@ -1297,12 +1303,20 @@ class Shopify {
         }
       ''';
 
+      final attribution = await AttributionService().getAttribution();
+      debugPrint("🛒 SENDING ATTRIBUTION TO SHOPIFY: $attribution");
+
       var res = await getGraphQLData(
         context,
         body: query,
         version: "2024-01",
         variable: {
-          "input": {"lines": list},
+          "input": {
+            "lines": list,
+            "attributes": attribution.entries
+                .map((e) => {"key": e.key, "value": e.value})
+                .toList(),
+          },
         },
       );
       if (res['data'] != null &&

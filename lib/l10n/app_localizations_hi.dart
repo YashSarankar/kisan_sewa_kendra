@@ -846,4 +846,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get addFollowingToGetFree => 'मुफ्त पाने के लिए निम्नलिखित जोड़ें:';
+
+  @override
+  String get loading => 'Loading...';
 }
