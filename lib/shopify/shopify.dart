@@ -560,8 +560,8 @@ class ShopifyAPI {
         "financial_status": isCod ? "pending" : "paid",
         "total_price": totalAmount.toStringAsFixed(2),
         "currency": "INR",
-        "email": email ?? shippingAddress['email'] ?? "",
         "phone": cleanPhone,
+        "customer": {"id": int.parse(customerId ?? "0")},
         "note_attributes": [
           {
             "name": "payment_id",
@@ -582,17 +582,21 @@ class ShopifyAPI {
                   .skip(1)
                   .join(' ') ??
               '',
-          "address1": shippingAddress['address1'] ?? "",
-          "address2": shippingAddress['address2'] ?? "",
-          "city": shippingAddress['city'] ?? "",
-          "province": shippingAddress['state'] ?? "",
-          "zip": shippingAddress['pincode'] ?? "",
+          "address1": shippingAddress['address1'] ?? '',
+          "address2": shippingAddress['address2'] ?? '',
+          "city": shippingAddress['city'] ?? '',
+          "province": shippingAddress['state'] ?? '',
+          "zip": shippingAddress['pincode'] ?? '',
           "phone": cleanPhone,
           "country": "India"
         },
         "inventory_behavior": "decrement_ignoring_policy",
         "send_receipt": true,
       };
+
+      if (email != null && email.isNotEmpty) {
+        orderPayload["email"] = email;
+      }
 
       if (discountCode != null && discountCode.isNotEmpty) {
         orderPayload["discount_codes"] = [

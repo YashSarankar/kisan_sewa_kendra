@@ -1573,9 +1573,6 @@ class _CartViewState extends State<CartView> {
     }
 
     String? contactEmail = await AuthController.getSavedEmail();
-    if (contactEmail == null || contactEmail.isEmpty) {
-      contactEmail = "customer@krishibhandar.com";
-    }
 
     final orderRes = await ShopifyAPI.createOrder(
       customerId: customerId,

@@ -63,6 +63,9 @@ class _LoginViewState extends State<LoginView>
     if (!_formKey.currentState!.validate()) return;
     if (_cooldown > 0) return;
     setState(() => _isLoading = true);
+    
+    // Clear any existing session before starting a new login
+    await AuthController.signOut();
 
     await AuthController.sendOtp(
       phone: _phoneController.text.trim(),

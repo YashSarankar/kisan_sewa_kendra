@@ -175,12 +175,7 @@ class AuthController {
 
             onAutoVerified();
           } catch (e) {
-            debugPrint('AuthController: Auto-verification notice: $e');
-            // Check if we are already signed in (sometimes happens in quick succession)
-            if (_auth.currentUser != null) {
-              onAutoVerified();
-            }
-            // Note: We don't call onError here because the user can still enter the OTP manually
+            debugPrint('AuthController: Auto-verification error: $e');
           }
         },
         verificationFailed: (FirebaseAuthException e) {
@@ -340,5 +335,8 @@ class AuthController {
     await prefs.remove(_keyName);
     await prefs.remove(_keyShopifyId);
     await prefs.remove(_keyEmail);
+    await prefs.remove(_keyAddressList);
+    await prefs.remove(_keyState);
+    debugPrint('AuthController: All user data cleared on sign-out');
   }
 }

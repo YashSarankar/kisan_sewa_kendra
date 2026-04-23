@@ -97,6 +97,14 @@ class _SplashScreenState extends State<SplashScreen>
       if (mounted) {
         // Check if user is already logged in
         final bool loggedIn = AuthController.isLoggedIn();
+
+        if (loggedIn) {
+          // Heal session if SharedPreferences were cleared but Firebase remains
+          AuthController.getSavedPhone().then((phone) {
+            if (phone != null) AuthController.syncWithShopify(phone);
+          });
+        }
+
         final Widget destination =
             loggedIn ? const MyHomePage() : const LoginView();
 

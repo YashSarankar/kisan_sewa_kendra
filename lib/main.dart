@@ -117,7 +117,9 @@ void main() async {
             navigatorKey.currentState?.pushNamed('/cart');
             break;
           default:
-            navigatorKey.currentState?.pushNamed('/home');
+            // Do not force navigation to home on default case
+            // as it interrupts the login flow during web verification.
+            break;
         }
       }
     });
