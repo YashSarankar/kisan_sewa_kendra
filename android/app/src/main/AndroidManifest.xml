@@ -73,7 +73,9 @@
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:label="Krishi Bhandar"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"
+        android:largeHeap="true"
+        android:enableOnBackInvokedCallback="true">
 
         <activity
             android:name=".MainActivity"

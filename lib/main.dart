@@ -1,7 +1,9 @@
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:appsflyer_sdk/appsflyer_sdk.dart';
+import 'package:kisan_sewa_kendra/controller/cart_controller.dart';
 import 'package:kisan_sewa_kendra/services/attribution_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -33,107 +35,123 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Load Environment Variables
+  // 1. Load Environment Variables
   try {
+    // --- OPTIMIZATION FOR 3GB RAM DEVICES ---
+    // Aggressively limit in-memory image cache
+    // A 3GB device usually only has ~200MB available for the app after OS overhead
+    PaintingBinding.instance.imageCache.maximumSizeBytes =
+        8 * 1024 * 1024; // 8 MB
+    PaintingBinding.instance.imageCache.maximumSize = 15; // 15 images
+
     await dotenv.load(fileName: ".env");
   } catch (e) {
     debugPrint("Dotenv loading error: $e");
   }
 
+  // 2. Initialize Firebase Core
   try {
-    // Firebase Init
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
 
-    // Activate App Check
-    // AndroidProvider.debug is useful for testing on emulators
-    // AndroidProvider.playIntegrity is for production
-    await FirebaseAppCheck.instance.activate(
-      androidProvider: AndroidProvider.playIntegrity,
-    );
+    // 3. Activate App Check (Optional, don't let failure stop the app)
+    try {
+      await FirebaseAppCheck.instance.activate(
+        androidProvider:
+            kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
+      );
+    } catch (e) {
+      debugPrint("Firebase App Check Error: $e");
+    }
 
-    // Initialize Push Notifications
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-    await NotificationService.init();
+    // 4. Initialize Messaging and Notifications
+    try {
+      FirebaseMessaging.onBackgroundMessage(
+          _firebaseMessagingBackgroundHandler);
+      await NotificationService.init();
 
-    // TEMPORARY: Print token for testing
-    FirebaseMessaging.instance.getToken().then((token) {
-      debugPrint("📱 YOUR FCM TOKEN: $token");
-    });
+      FirebaseMessaging.instance.getToken().then((token) {
+        debugPrint("📱 YOUR FCM TOKEN: $token");
+      });
 
-    // Push Notification Attribution
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      AttributionService().handlePushNotification(message);
-    });
-    FirebaseMessaging.instance
-        .getInitialMessage()
-        .then((RemoteMessage? message) {
-      if (message != null) {
+      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
         AttributionService().handlePushNotification(message);
-      }
-    });
+      });
 
-    // Initialize Meta Events
-    await MetaEvents.init();
-
-    // Initialize AppsFlyer SDK
-    AppsFlyerOptions options = AppsFlyerOptions(
-      afDevKey: "uphcn8e9ZxH7a38qCXQEcd",
-      showDebug: false,
-      timeToWaitForATTUserAuthorization: 15,
-    );
-
-    AppsflyerSdk appsflyerSdk = AppsflyerSdk(options);
-    await appsflyerSdk.initSdk(
-      registerConversionDataCallback: true,
-      registerOnAppOpenAttributionCallback: true,
-      registerOnDeepLinkingCallback: true,
-    );
-
-    // Step 6.1 — Add onDeepLinking Handler
-    appsflyerSdk.onDeepLinking((DeepLinkResult dp) {
-      if (dp.status == Status.FOUND) {
-        final deepLinkValue = dp.deepLink?.deepLinkValue;
-        final params = dp.deepLink?.clickEvent;
-
-        switch (deepLinkValue) {
-          case 'product':
-            final productId = params?['product_id'];
-            if (productId != null) {
-              navigatorKey.currentState?.pushNamed('/product/$productId');
-            }
-            break;
-          case 'category':
-            final category = params?['category'];
-            if (category != null) {
-              navigatorKey.currentState?.pushNamed('/category/$category');
-            }
-            break;
-          case 'offer':
-            navigatorKey.currentState?.pushNamed('/offers');
-            break;
-          case 'cart':
-            navigatorKey.currentState?.pushNamed('/cart');
-            break;
-          default:
-            // Do not force navigation to home on default case
-            // as it interrupts the login flow during web verification.
-            break;
+      FirebaseMessaging.instance
+          .getInitialMessage()
+          .then((RemoteMessage? message) {
+        if (message != null) {
+          AttributionService().handlePushNotification(message);
         }
-      }
-    });
+      });
+    } catch (e) {
+      debugPrint("Messaging Initialization Error: $e");
+    }
 
-    await AttributionService().init(appsflyerSdk);
+    // 5. Initialize Meta Events
+    try {
+      await MetaEvents.init();
+    } catch (e) {
+      debugPrint("Meta Events Error: $e");
+    }
 
-    final languageController = LanguageController();
-    Constants.languageController = languageController;
+    // 6. Initialize AppsFlyer and Attribution
+    try {
+      AppsFlyerOptions afOptions = AppsFlyerOptions(
+        afDevKey: "uphcn8e9ZxH7a38qCXQEcd",
+        showDebug: false,
+        timeToWaitForATTUserAuthorization: 15,
+      );
 
-    runApp(MyApp(languageController: languageController));
-// ignore: strict_top_level_inference
+      AppsflyerSdk appsflyerSdk = AppsflyerSdk(afOptions);
+      await appsflyerSdk.initSdk(
+        registerConversionDataCallback: true,
+        registerOnAppOpenAttributionCallback: true,
+        registerOnDeepLinkingCallback: true,
+      );
+
+      appsflyerSdk.onDeepLinking((DeepLinkResult dp) {
+        if (dp.status == Status.FOUND) {
+          final deepLinkValue = dp.deepLink?.deepLinkValue;
+          final params = dp.deepLink?.clickEvent;
+
+          switch (deepLinkValue) {
+            case 'product':
+              final productId = params?['product_id'];
+              if (productId != null) {
+                navigatorKey.currentState?.pushNamed('/product/$productId');
+              }
+              break;
+            case 'category':
+              final category = params?['category'];
+              if (category != null) {
+                navigatorKey.currentState?.pushNamed('/category/$category');
+              }
+              break;
+            case 'offer':
+              navigatorKey.currentState?.pushNamed('/offers');
+              break;
+            case 'cart':
+              navigatorKey.currentState?.pushNamed('/cart');
+              break;
+            default:
+              break;
+          }
+        }
+      });
+
+      await AttributionService().init(appsflyerSdk);
+    } catch (e) {
+      // debugPrint("AppsFlyer/Attribution Error: $e");
+    }
   } catch (e) {
-    debugPrint("Error: $e");
+    // debugPrint("Core Firebase Error: $e");
   }
+
+  // 7. Always run the app
+  runApp(MyApp(languageController: Constants.languageController));
 }
 
 class MyApp extends StatelessWidget {

@@ -54,8 +54,12 @@ class _AddressViewState extends State<AddressView> {
         _addressList = addresses;
         _savedName = name;
         _savedPhone = phone;
+
         if (_addressList.isNotEmpty) {
-          _selectedIndex = 0;
+          // Keep selection if valid, else default to 0
+          if (_selectedIndex == null || _selectedIndex! >= _addressList.length) {
+            _selectedIndex = 0;
+          }
           _isAddingAddress = false;
         } else {
           _isAddingAddress = true;
@@ -119,33 +123,39 @@ class _AddressViewState extends State<AddressView> {
   }
 
   Future<void> _getCurrentLocation() async {
+    final l10n = AppLocalizations.of(context);
     setState(() => _isFetchingLocation = true);
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        if (mounted)
+        if (mounted && l10n != null) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(AppLocalizations.of(context)!.locationDisabled)));
+              content: Text(l10n.locationDisabled)));
+        }
+        setState(() => _isFetchingLocation = false);
         return;
       }
 
       LocationPermission permission = await Geolocator.checkPermission();
+      if (!mounted) return;
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          if (mounted)
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text(AppLocalizations.of(context)!.locationDenied)));
+          if (mounted && l10n != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(l10n.locationDenied)));
+          }
+          setState(() => _isFetchingLocation = false);
           return;
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
-        if (mounted) {
+        if (mounted && l10n != null) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(
-                  AppLocalizations.of(context)!.locationPermanentlyDenied)));
+              content: Text(l10n.locationPermanentlyDenied)));
         }
+        setState(() => _isFetchingLocation = false);
         return;
       }
 
@@ -193,10 +203,10 @@ class _AddressViewState extends State<AddressView> {
       }
     } catch (e) {
       debugPrint('Error getting location: $e');
-      if (mounted)
+      if (mounted && l10n != null) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content:
-                Text('${AppLocalizations.of(context)!.locationFailed}: $e')));
+            content: Text('${l10n.locationFailed}: $e')));
+      }
     } finally {
       if (mounted) setState(() => _isFetchingLocation = false);
     }
@@ -306,9 +316,12 @@ class _AddressViewState extends State<AddressView> {
                 borderSide: const BorderSide(color: Colors.redAccent)),
           ),
           validator: validator ??
-              (v) => (v == null || v.isEmpty)
-                  ? AppLocalizations.of(context)!.fieldRequired
-                  : null,
+              (v) {
+                final l10n = AppLocalizations.of(context);
+                return (v == null || v.isEmpty)
+                    ? (l10n?.fieldRequired ?? 'This field is required')
+                    : null;
+              },
         ),
         const SizedBox(height: 20),
       ],
@@ -317,6 +330,9 @@ class _AddressViewState extends State<AddressView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    if (l10n == null) return const Scaffold();
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -325,7 +341,7 @@ class _AddressViewState extends State<AddressView> {
       ),
       child: Scaffold(
         backgroundColor: const Color(0xffF9FBF9),
-        body: Stack(
+        body: l10n == null ? const SizedBox() : Stack(
           children: [
             SingleChildScrollView(
               padding: EdgeInsets.fromLTRB(

@@ -4,12 +4,14 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../controller/language_controller.dart';
+import '../controller/cart_controller.dart';
 import '../model/localization_model.dart';
 import '../shopify/shopify.dart';
 import 'pref.dart';
 
 class Constants {
-  static late LanguageController languageController;
+  static final LanguageController languageController = LanguageController();
+  static final CartController cartController = CartController();
   static String cdnUrl =
       "https://cdn.shopify.com/s/files/1/0627/9204/0601/files/";
   static String inr = "₹", title = "Krishi Bhandar";

@@ -122,8 +122,14 @@ class AuthController {
     if (json == null) return [];
     try {
       List<dynamic> list = jsonDecode(json);
-      return list.map((e) => Map<String, String>.from(e)).toList();
+      return list.map((e) {
+        if (e is Map) {
+          return e.map((k, v) => MapEntry(k.toString(), v?.toString() ?? ''));
+        }
+        return <String, String>{};
+      }).where((m) => m.isNotEmpty).toList();
     } catch (e) {
+      debugPrint('AuthController: Error loading addresses: $e');
       return [];
     }
   }
@@ -292,8 +298,8 @@ class AuthController {
             '${customer['first_name'] ?? ''} ${customer['last_name'] ?? ''}'
                 .trim());
         await prefs.setString(_keyEmail, customer['email'] ?? '');
-        debugPrint(
-            'AuthController: Found existing Shopify customer: ${customer['id']}');
+        // debugPrint(
+        //     'AuthController: Found existing Shopify customer: ${customer['id']}');
       } else {
           // Create new customer
           final createRes = await http.post(

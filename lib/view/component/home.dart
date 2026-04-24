@@ -40,10 +40,18 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-    _initCategories();
-    _fetchBanners();
-    _fetchBestSellerIds();
+    _staggeredInit();
     Constants.languageController.addListener(_onLanguageChanged);
+  }
+
+  Future<void> _staggeredInit() async {
+    await _fetchBanners();
+    if (!mounted) return;
+    await Future.delayed(const Duration(milliseconds: 300));
+    await _initCategories();
+    if (!mounted) return;
+    await Future.delayed(const Duration(milliseconds: 300));
+    await _fetchBestSellerIds();
   }
 
   @override
@@ -74,12 +82,12 @@ class _HomeState extends State<Home> {
         _banners = banners;
         _isLoadingBanners = false;
       });
-      // Preload banner images
-      for (var banner in _banners) {
-        if (banner.image.isNotEmpty) {
-          precacheImage(NetworkImage(banner.image), context);
-        }
-      }
+      // Preload banner images (DISABLED for 3GB RAM stability)
+      // for (var banner in _banners) {
+      //   if (banner.image.isNotEmpty) {
+      //     precacheImage(NetworkImage(banner.image), context);
+      //   }
+      // }
     }
   }
 
@@ -112,7 +120,7 @@ class _HomeState extends State<Home> {
   void _handleBannerClick(CategoriesModel banner) async {
     int index = _banners.indexOf(banner);
 
-    debugPrint("Banner Index: $index");
+    // debugPrint("Banner Index: $index");
 
     // 🟢 Banner 0 → Collection
     if (index == 0) {
@@ -158,14 +166,12 @@ class _HomeState extends State<Home> {
   Future<void> _openProduct(String handle,
       {String? fallbackCollectionId}) async {
     try {
-      debugPrint("🔍 Fetching product handle: $handle");
+      // debugPrint("🔍 Fetching product handle: $handle");
 
       final results = await Shopify.fetchSearchResults(context, query: handle);
 
-      debugPrint("🔍 Search results count: ${results.length}");
-      for (var r in results) {
-        debugPrint("   → handle: ${r.handle}  title: ${r.title}");
-      }
+      // debugPrint("🔍 Search results count: ${results.length}");
+      // debugPrint("   → handle: ${r.handle}  title: ${r.title}");
 
       if (results.isNotEmpty) {
         // Try exact handle match first, fallback to first result
@@ -177,7 +183,7 @@ class _HomeState extends State<Home> {
           Routers.goTO(context, toBody: ProductView(product: product));
         }
       } else {
-        debugPrint("⚠️ Product not found: $handle");
+        // debugPrint("⚠️ Product not found: $handle");
         if (mounted) {
           // Fallback → go to a collection if provided
           if (fallbackCollectionId != null) {
@@ -194,7 +200,7 @@ class _HomeState extends State<Home> {
         }
       }
     } catch (e) {
-      debugPrint("❌ Product open error: $e");
+      // debugPrint("❌ Product open error: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -304,12 +310,12 @@ class _HomeState extends State<Home> {
         _categories = filtered;
         _isLoadingCats = false;
       });
-      // Pre-cache SVGs to disk for near-instant loading
-      for (var cat in _categories) {
-        if (cat.image.isNotEmpty) {
-          DefaultCacheManager().downloadFile(cat.image);
-        }
-      }
+      // Pre-cache SVGs (DISABLED for 3GB RAM stability)
+      // for (var cat in _categories) {
+      //   if (cat.image.isNotEmpty) {
+      //     DefaultCacheManager().downloadFile(cat.image);
+      //   }
+      // }
     }
   }
 
@@ -399,139 +405,127 @@ class _HomeState extends State<Home> {
             RefreshIndicator(
               color: const Color(0xFF26842c),
               onRefresh: _refresh,
-              child: ListView(
+              child: CustomScrollView(
                 controller: widget.scrollController,
                 physics: const AlwaysScrollableScrollPhysics(
                   parent: BouncingScrollPhysics(),
                 ),
-                padding: const EdgeInsets.only(
-                    top: 15), // Adjusted for non-overlapping Appbar
-                children: [
-                  if (_isLoadingBanners)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      child: Container(
-                        height: 140,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: const Center(
+                slivers: [
+                  const SliverToBoxAdapter(child: SizedBox(height: 15)),
+
+                  // --- BANNERS ---
+                  SliverToBoxAdapter(
+                    child: _isLoadingBanners
+                        ? Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            child: Container(
+                              height: 140,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: const Center(
+                                  child: CircularProgressIndicator(
+                                      color: Color(0xFF26842c))),
+                            ),
+                          )
+                        : _banners.isNotEmpty
+                            ? Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                                child: HomeCarousel(
+                                  banners: _banners,
+                                  onBannerClick: _handleBannerClick,
+                                ),
+                              )
+                            : const SizedBox.shrink(),
+                  ),
+
+                  // --- CATEGORIES HEADER ---
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 4,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF26842c),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            AppLocalizations.of(context)!.categories,
+                            style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -0.5),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // --- CATEGORIES GRID ---
+                  if (_isLoadingCats)
+                    const SliverToBoxAdapter(
+                      child: SizedBox(
+                        height: 120,
+                        child: Center(
                             child: CircularProgressIndicator(
                                 color: Color(0xFF26842c))),
                       ),
                     )
-                  else if (_banners.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-                      child: HomeCarousel(
-                        banners: _banners,
-                        onBannerClick: _handleBannerClick,
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      sliver: SliverGrid(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 0,
+                          mainAxisSpacing: 0,
+                          childAspectRatio: 1.0,
+                        ),
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            final cat = _categories[index];
+                            return WidgetButton(
+                              onTap: () => Routers.goTO(context,
+                                  toBody: CollectionView(
+                                      collectionId: cat.id.toString(),
+                                      title: cat.title)),
+                              child: KskNetworkImage(
+                                cat.image,
+                                fit: BoxFit.contain,
+                              ),
+                            );
+                          },
+                          childCount: _categories.length,
+                        ),
                       ),
                     ),
 
-                  const SizedBox(height: 4),
-                  const SizedBox(height: 4),
-
-                  // --- CATEGORIES SECTION ---
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 4,
-                              height: 20,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF26842c),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              AppLocalizations.of(context)!.categories,
-                              style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: -0.5),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        if (_isLoadingCats)
-                          const SizedBox(
-                            height: 120,
-                            child: Center(
-                                child: CircularProgressIndicator(
-                                    color: Color(0xFF26842c))),
-                          )
-                        else
-                          GridView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            padding: EdgeInsets.zero,
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 3,
-                              crossAxisSpacing: 12,
-                              mainAxisSpacing: 12,
-                              childAspectRatio: 1.0,
-                            ),
-                            itemCount: _categories.length,
-                            itemBuilder: (context, index) {
-                              final cat = _categories[index];
-                              return WidgetButton(
-                                onTap: () => Routers.goTO(context,
-                                    toBody: CollectionView(
-                                        collectionId: cat.id.toString(),
-                                        title: cat.title)),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(12),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.03),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 2),
-                                        )
-                                      ],
-                                      border:
-                                          Border.all(color: Colors.grey[100]!)),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: KskNetworkImage(
-                                      cat.image,
-                                      fit: BoxFit.contain,
-                                      width: double.infinity,
-                                      height: double.infinity,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-
                   // --- DYNAMIC SECTIONS ---
-                  if (bestSeller != null) _buildDynamicSection(bestSeller, []),
+                  if (bestSeller != null)
+                    SliverToBoxAdapter(
+                        child: _buildDynamicSection(bestSeller, [])),
 
                   if (badiBachat != null)
-                    _buildDynamicSection(badiBachat, _bestSellerIds),
+                    SliverToBoxAdapter(
+                        child:
+                            _buildDynamicSection(badiBachat, _bestSellerIds)),
 
                   for (var section in allCats)
                     if (section != bestSeller && section != badiBachat)
-                      _buildDynamicSection(section, []),
+                      SliverToBoxAdapter(
+                          child: _buildDynamicSection(section, [])),
 
                   // --- PREMIUM FOOTER ---
-                  _buildPremiumFooter(),
+                  SliverToBoxAdapter(child: _buildPremiumFooter()),
                 ],
               ),
             ),
@@ -740,7 +734,8 @@ class _HomeCarouselState extends State<HomeCarousel> {
                   child: KskNetworkImage(
                     banner.image,
                     fit: BoxFit.fill,
-                    width: double.infinity,
+                    width: 600,
+                    height: 230,
                   ),
                 );
               }).toList(),

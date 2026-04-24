@@ -35,7 +35,7 @@ class ShopifyAPI {
         return jsonDecode(res.body);
       }
     } catch (e) {
-      debugPrint("ShopifyAPI Error: $e");
+      // debugPrint("ShopifyAPI Error: $e");
     }
     return {};
   }
@@ -205,14 +205,14 @@ class ShopifyAPI {
                 lastOrder['subtotal_price'] = sub.toStringAsFixed(2);
               }
             } catch (e) {
-              debugPrint("Mapper Error: $e");
+              // debugPrint("Mapper Error: $e");
             }
           }
           return orders;
         }
       }
     } catch (e) {
-      debugPrint("getCustomerOrders Error: $e");
+      // debugPrint("getCustomerOrders Error: $e");
     }
     return [];
   }
@@ -234,7 +234,7 @@ class ShopifyAPI {
         return jsonDecode(res.body);
       }
     } catch (e) {
-      debugPrint("ShopifyAdmin GraphQL Error: $e");
+      // debugPrint("ShopifyAdmin GraphQL Error: $e");
     }
     return {};
   }
@@ -416,7 +416,7 @@ class ShopifyAPI {
               }
             }
           } catch (e) {
-            debugPrint("REST Fallback Error: $e");
+            // debugPrint("REST Fallback Error: $e");
           }
         }
 
@@ -519,7 +519,7 @@ class ShopifyAPI {
       }
       return finalData;
     } catch (e) {
-      debugPrint("getOrderFullDetails Overall Error: $e");
+      // debugPrint("getOrderFullDetails Overall Error: $e");
     }
     return {};
   }
@@ -611,8 +611,8 @@ class ShopifyAPI {
         orderPayload["total_discounts"] = discountAmount.toStringAsFixed(2);
       }
 
-      debugPrint(
-          "DEBUG: Shopify Order Payload --> ${jsonEncode(orderPayload)}");
+      // debugPrint(
+      //     "DEBUG: Shopify Order Payload --> ${jsonEncode(orderPayload)}");
 
       if (customerId != null && customerId.isNotEmpty && customerId != "null") {
         try {
@@ -629,18 +629,18 @@ class ShopifyAPI {
         body: jsonEncode({"order": orderPayload}),
       );
 
-      debugPrint("Shopify Create Order Status: ${res.statusCode}");
+      // debugPrint("Shopify Create Order Status: ${res.statusCode}");
 
       if (res.statusCode == 201) {
         return jsonDecode(res.body);
       } else {
-        debugPrint("Create Order Error ${res.statusCode}: ${res.body}");
+        // debugPrint("Create Order Error ${res.statusCode}: ${res.body}");
         return {
           "error": "Shopify Status ${res.statusCode}: ${res.body}",
         };
       }
     } catch (e) {
-      debugPrint("createOrder Overall Error: $e");
+      // debugPrint("createOrder Overall Error: $e");
       return {
         "error": "Exception: $e",
       };
@@ -658,9 +658,9 @@ class ShopifyAPI {
       if (res.statusCode == 200 || res.statusCode == 201) {
         return true;
       }
-      debugPrint("Cancel Order Error ${res.statusCode}: ${res.body}");
+      // debugPrint("Cancel Order Error ${res.statusCode}: ${res.body}");
     } catch (e) {
-      debugPrint("cancelOrder Error: $e");
+      // debugPrint("cancelOrder Error: $e");
     }
     return false;
   }
@@ -706,7 +706,7 @@ class Shopify {
         }
       }
 
-      debugPrint("Shopify Request [Lang: ${variables['lang']}]: $body");
+      // debugPrint("Shopify Request [Lang: ${variables['lang']}]: $body");
 
       Map<String, dynamic> data = {
         'query': query,
@@ -728,28 +728,28 @@ class Shopify {
       if (res.statusCode == 200) {
         final decoded = jsonDecode(res.body);
         if (decoded['errors'] != null) {
-          debugPrint("Shopify GraphQL Errors: ${decoded['errors']}");
+          // debugPrint("Shopify GraphQL Errors: ${decoded['errors']}");
         }
         if (decoded['data'] != null) {
-          debugPrint("Shopify Response Data: ${jsonEncode(decoded['data'])}");
+          // debugPrint("Shopify Response Data: ${jsonEncode(decoded['data'])}");
         } else {
           debugPrint(
               "Shopify Response: No data returned for lang ${variables['lang']}");
         }
         return decoded;
       } else {
-        debugPrint("Shopify Error ${res.statusCode}: ${res.reasonPhrase}");
+        // debugPrint("Shopify Error ${res.statusCode}: ${res.reasonPhrase}");
         return {};
       }
     } catch (e) {
-      debugPrint("Shopify Network/Parsing Error: $e");
+      // debugPrint("Shopify Network/Parsing Error: $e");
       return {};
     }
   }
 
   static Future<ProductModel?> getProductDetails(BuildContext context,
       {required String productId}) async {
-    debugPrint("Fetching localized product details for: $productId");
+    // debugPrint("Fetching localized product details for: $productId");
     try {
       final fullId =
           productId.contains(_proIdPre) ? productId : "$_proIdPre$productId";
@@ -840,7 +840,7 @@ class Shopify {
         return ProductModel.fromJson(li);
       }
     } catch (e) {
-      debugPrint("Error fetching product details: $e");
+      // debugPrint("Error fetching product details: $e");
     }
     return null;
   }
@@ -860,19 +860,13 @@ class Shopify {
               nodes {
                   id
                   title
-                  descriptionHtml
                   vendor
                   productType
                   handle
                   featuredImage {
                       url
                   }
-                  images(first: 10) {
-                      nodes {
-                          url
-                      }
-                  }
-                  variants(first: 100) {
+                  variants(first: 20) {
                       nodes {
                           id
                           title
@@ -946,7 +940,7 @@ class Shopify {
         };
       }
     } catch (e) {
-      debugPrint("Error in getProductsFromCollections: $e");
+      // debugPrint("Error in getProductsFromCollections: $e");
     }
     return {"product": <ProductModel>[], "end": null};
   }
@@ -1024,7 +1018,7 @@ class Shopify {
         return ProductModel.fromJson(li);
       }
     } catch (e) {
-      debugPrint("Error in getProductVariantDetails: $e");
+      // debugPrint("Error in getProductVariantDetails: $e");
     }
     return null;
   }
@@ -1057,7 +1051,7 @@ class Shopify {
         return list;
       }
     } catch (e) {
-      debugPrint("Error in getLocalization: $e");
+      // debugPrint("Error in getLocalization: $e");
     }
     return [];
   }
@@ -1071,7 +1065,6 @@ class Shopify {
             productRecommendations(productId: "$_proIdPre$id") {
             id
             title
-            descriptionHtml
             vendor
             productType
             handle
@@ -1140,7 +1133,7 @@ class Shopify {
         return list;
       }
     } catch (e) {
-      debugPrint("Error in getProductsRecommend: $e");
+      // debugPrint("Error in getProductsRecommend: $e");
     }
     return [];
   }
@@ -1177,7 +1170,7 @@ class Shopify {
         };
       }
     } catch (e) {
-      debugPrint("Error in getCollectionDetails: $e");
+      // debugPrint("Error in getCollectionDetails: $e");
     }
     return {};
   }
@@ -1232,7 +1225,7 @@ class Shopify {
         return list;
       }
     } catch (e) {
-      debugPrint("Error in getCategories: $e");
+      // debugPrint("Error in getCategories: $e");
     }
     return [];
   }
@@ -1275,7 +1268,7 @@ class Shopify {
         return list;
       }
     } catch (e) {
-      debugPrint("Error in getBannerCollections: $e");
+      // debugPrint("Error in getBannerCollections: $e");
     }
     return [];
   }
@@ -1306,7 +1299,7 @@ class Shopify {
       ''';
 
       final attribution = await AttributionService().getAttribution();
-      debugPrint("🛒 SENDING ATTRIBUTION TO SHOPIFY: $attribution");
+      // debugPrint("🛒 SENDING ATTRIBUTION TO SHOPIFY: $attribution");
 
       var res = await getGraphQLData(
         context,
@@ -1331,7 +1324,7 @@ class Shopify {
         return res['data']['cartCreate']['cart']['checkoutUrl'] ?? '';
       }
     } catch (e) {
-      debugPrint("Error in checkout: $e");
+      // debugPrint("Error in checkout: $e");
     }
     return '';
   }
@@ -1350,7 +1343,6 @@ class Shopify {
                   ... on Product {
                       id
                       title
-                      descriptionHtml
                       vendor
                       productType
                       handle
@@ -1420,7 +1412,7 @@ class Shopify {
         return list;
       }
     } catch (e) {
-      debugPrint("Error in fetchSearchResults: $e");
+      // debugPrint("Error in fetchSearchResults: $e");
     }
     return [];
   }
@@ -1456,7 +1448,7 @@ class Shopify {
         }
       }
     } catch (e) {
-      debugPrint("Error in getCheckoutStatus: $e");
+      // debugPrint("Error in getCheckoutStatus: $e");
     }
   }
 
@@ -1516,7 +1508,7 @@ class ShopifyAdmin {
         return jsonDecode(res.body);
       }
     } catch (e) {
-      debugPrint("ShopifyAdmin Error: $e");
+      // debugPrint("ShopifyAdmin Error: $e");
     }
     return {};
   }
@@ -1584,7 +1576,7 @@ class ShopifyAdmin {
         );
       }
     } catch (e) {
-      debugPrint("Error in getProductsByVariant: $e");
+      // debugPrint("Error in getProductsByVariant: $e");
     }
     return null;
   }
@@ -1686,7 +1678,7 @@ class ShopifyAdmin {
       );
 
       if (res.statusCode == 200) {
-        debugPrint("Get Discounts Response: ${res.body}");
+        // debugPrint("Get Discounts Response: ${res.body}");
         final data = jsonDecode(res.body);
         List<Map<String, dynamic>> discounts = [];
 
@@ -1846,7 +1838,7 @@ class ShopifyAdmin {
         return discounts;
       }
     } catch (e) {
-      debugPrint("Get Discounts Error: $e");
+      // debugPrint("Get Discounts Error: $e");
     }
     return [];
   }
@@ -1944,7 +1936,7 @@ class ShopifyAdmin {
 
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
-        debugPrint("Validate Discount Response: ${res.body}");
+        // debugPrint("Validate Discount Response: ${res.body}");
         if (data['errors'] != null) {
           debugPrint("Shopify GraphQL Errors: ${data['errors']}");
         }
@@ -2058,7 +2050,7 @@ class ShopifyAdmin {
         }
       }
     } catch (e) {
-      debugPrint("Validate Discount Error: $e");
+      // debugPrint("Validate Discount Error: $e");
     }
     return null;
   }
