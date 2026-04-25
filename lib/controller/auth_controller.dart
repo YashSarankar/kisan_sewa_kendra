@@ -7,6 +7,7 @@ import 'constants.dart';
 
 class AuthController {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
+  static bool isSyncing = false;
 
   // Keys for SharedPreferences
   static const String _keyPhone = 'user_phone';
@@ -82,6 +83,37 @@ class AuthController {
       await prefs.setString(_keyName, name);
       // Background sync name to Shopify
       _updateShopifyCustomerName(name);
+    }
+  }
+
+  static Future<void> updateAddress({
+    required int index,
+    required String pincode,
+    required String address1,
+    required String address2,
+    required String city,
+    required String state,
+    String? firstName,
+    String? lastName,
+    String? name,
+    String? phone,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    List<Map<String, String>> current = await getStoredAddresses();
+
+    if (index >= 0 && index < current.length) {
+      current[index] = {
+        'pincode': pincode,
+        'address1': address1,
+        'address2': address2,
+        'city': city,
+        'state': state,
+        'name': name ?? '',
+        'first_name': firstName ?? '',
+        'last_name': lastName ?? '',
+        'phone': phone ?? '',
+      };
+      await prefs.setString(_keyAddressList, jsonEncode(current));
     }
   }
 
@@ -249,6 +281,7 @@ class AuthController {
 
   // ─── Sync with Shopify ────────────────────────────────────────────────────
   static Future<void> syncWithShopify(String phone) async {
+    isSyncing = true;
     try {
       const String baseUrl = "https://3b7f20-3.myshopify.com/admin/api/2024-10";
       Map<String, String> headers = {
@@ -256,93 +289,88 @@ class AuthController {
         'X-Shopify-Access-Token': Constants.shopifyAccessToken,
       };
 
-      // Search for existing customer by phone
-      // Try with +91 first
+      final prefs = await SharedPreferences.getInstance();
+
+      // 1. Consolidated Search (Faster: 1 request instead of 3)
+      // We search for E.164, local format, and raw digits in one go using OR
+      final String query = 'phone:"+91$phone" OR phone:"$phone" OR "$phone"';
       var searchRes = await http.get(
         Uri.parse(
-            '$baseUrl/customers/search.json?query=phone:%2B91$phone&limit=1'),
+            '$baseUrl/customers/search.json?query=${Uri.encodeComponent(query)}&limit=1'),
         headers: headers,
       );
 
-      var searchData = searchRes.statusCode == 200 ? jsonDecode(searchRes.body) : {};
+      var searchData =
+          searchRes.statusCode == 200 ? jsonDecode(searchRes.body) : {};
       var customers = searchData['customers'] as List?;
 
-      // If not found, try without +91
-      if (customers == null || customers.isEmpty) {
-        searchRes = await http.get(
-          Uri.parse('$baseUrl/customers/search.json?query=phone:$phone&limit=1'),
-          headers: headers,
-        );
-        searchData = searchRes.statusCode == 200 ? jsonDecode(searchRes.body) : {};
-        customers = searchData['customers'] as List?;
-      }
-
-      // Final fallback: search just the phone digits
-      if (customers == null || customers.isEmpty) {
-        searchRes = await http.get(
-          Uri.parse('$baseUrl/customers/search.json?query=$phone&limit=1'),
-          headers: headers,
-        );
-        searchData = searchRes.statusCode == 200 ? jsonDecode(searchRes.body) : {};
-        customers = searchData['customers'] as List?;
-      }
-
-      final prefs = await SharedPreferences.getInstance();
-
+      // 2. Process Result or Create
       if (customers != null && customers.isNotEmpty) {
-        // Existing customer found
         final customer = customers[0];
-        await prefs.setString(_keyShopifyId, customer['id'].toString());
-        await prefs.setString(
-            _keyName,
-            '${customer['first_name'] ?? ''} ${customer['last_name'] ?? ''}'
-                .trim());
-        await prefs.setString(_keyEmail, customer['email'] ?? '');
-        // debugPrint(
-        //     'AuthController: Found existing Shopify customer: ${customer['id']}');
+        await _saveShopifyCustomerToPrefs(customer, prefs);
       } else {
-          // Create new customer
-          final createRes = await http.post(
-            Uri.parse('$baseUrl/customers.json'),
-            headers: headers,
-            body: jsonEncode({
-              "customer": {
-                "phone": "+91$phone",
-                "first_name": "Krishi",
-                "last_name": "Customer",
-                "tags": "mobile-app",
-              }
-            }),
-          );
+        // Create new customer
+        final createRes = await http.post(
+          Uri.parse('$baseUrl/customers.json'),
+          headers: headers,
+          body: jsonEncode({
+            "customer": {
+              "phone": "+91$phone",
+              "first_name": "Krishi",
+              "last_name": "Customer",
+              "tags": "mobile-app",
+            }
+          }),
+        );
 
-          if (createRes.statusCode == 201) {
-            final createData = jsonDecode(createRes.body);
-            final customer = createData['customer'];
-            await prefs.setString(_keyShopifyId, customer['id'].toString());
-            await prefs.setString(
-                _keyName,
-                '${customer['first_name'] ?? ''} ${customer['last_name'] ?? ''}'
-                    .trim());
-            debugPrint(
-                'AuthController: Created new Shopify customer: ${customer['id']}');
+        if (createRes.statusCode == 201) {
+          final createData = jsonDecode(createRes.body);
+          await _saveShopifyCustomerToPrefs(createData['customer'], prefs);
+        } else if (createRes.statusCode == 422) {
+          // If creation fails because phone is "taken" but search didn't find them,
+          // it's likely a formatting edge case. Do a final broad digits-only search.
+          var finalSearch = await http.get(
+            Uri.parse('$baseUrl/customers/search.json?query=$phone&limit=1'),
+            headers: headers,
+          );
+          var finalData =
+              finalSearch.statusCode == 200 ? jsonDecode(finalSearch.body) : {};
+          var finalCustomers = finalData['customers'] as List?;
+          if (finalCustomers != null && finalCustomers.isNotEmpty) {
+            await _saveShopifyCustomerToPrefs(finalCustomers[0], prefs);
           }
         }
+      }
     } catch (e) {
       debugPrint('AuthController: Shopify sync error: $e');
-      // Non-blocking — app continues even if sync fails
+    } finally {
+      isSyncing = false;
     }
+  }
+
+  static Future<void> _saveShopifyCustomerToPrefs(
+      dynamic customer, SharedPreferences prefs) async {
+    await prefs.setString(_keyShopifyId, customer['id'].toString());
+    await prefs.setString(
+        _keyName,
+        '${customer['first_name'] ?? ''} ${customer['last_name'] ?? ''}'
+            .trim());
+    await prefs.setString(_keyEmail, customer['email'] ?? '');
+    debugPrint('AuthController: Synced Shopify Customer ID: ${customer['id']}');
   }
 
   // ─── Sign Out ─────────────────────────────────────────────────────────────
   static Future<void> signOut() async {
     await _auth.signOut();
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_keyPhone);
-    await prefs.remove(_keyName);
-    await prefs.remove(_keyShopifyId);
-    await prefs.remove(_keyEmail);
-    await prefs.remove(_keyAddressList);
-    await prefs.remove(_keyState);
+    await Future.wait([
+      prefs.remove(_keyPhone),
+      prefs.remove(_keyName),
+      prefs.remove(_keyShopifyId),
+      prefs.remove(_keyEmail),
+      prefs.remove(_keyAddressList),
+      prefs.remove(_keyState),
+    ]);
     debugPrint('AuthController: All user data cleared on sign-out');
   }
 }

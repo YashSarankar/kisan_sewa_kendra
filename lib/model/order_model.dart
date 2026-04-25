@@ -90,7 +90,12 @@ class OrderModel {
   }
 
   bool get isCancellable {
-    return cancelledAt == null && !hasTrackingNumber && trackingStatus != 'Cancelled';
+    return cancelledAt == null && 
+           fulfillments.isEmpty && 
+           !hasTrackingNumber && 
+           trackingStatus != 'Cancelled' &&
+           trackingStatus != 'Shipped' &&
+           trackingStatus != 'Delivered';
   }
 
   String get formattedDate {

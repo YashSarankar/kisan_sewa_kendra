@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:pinput/pinput.dart';
 import '../../controller/auth_controller.dart';
 import '../../controller/constants.dart';
 import 'package:kisan_sewa_kendra/l10n/app_localizations.dart';
@@ -21,9 +21,8 @@ class OtpView extends StatefulWidget {
 }
 
 class _OtpViewState extends State<OtpView> with SingleTickerProviderStateMixin {
-  final List<TextEditingController> _controllers =
-      List.generate(6, (_) => TextEditingController());
-  final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
+  final TextEditingController _otpController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
   bool _isLoading = false;
   bool _isResending = false;
   int _resendCountdown = 30;
@@ -39,22 +38,14 @@ class _OtpViewState extends State<OtpView> with SingleTickerProviderStateMixin {
     _fadeAnim = CurvedAnimation(parent: _animController, curve: Curves.easeOut);
     _animController.forward();
     _startResendTimer();
-    // Auto-focus first box
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      FocusScope.of(context).requestFocus(_focusNodes[0]);
-    });
   }
 
   @override
   void dispose() {
     _timer?.cancel();
     _animController.dispose();
-    for (var c in _controllers) {
-      c.dispose();
-    }
-    for (var f in _focusNodes) {
-      f.dispose();
-    }
+    _otpController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -69,28 +60,14 @@ class _OtpViewState extends State<OtpView> with SingleTickerProviderStateMixin {
     });
   }
 
-  String get _fullOtp => _controllers.map((c) => c.text).join();
-
-  void _onOtpInput(int index, String value) {
-    if (value.length == 1 && index < 5) {
-      FocusScope.of(context).requestFocus(_focusNodes[index + 1]);
-    } else if (value.isEmpty && index > 0) {
-      FocusScope.of(context).requestFocus(_focusNodes[index - 1]);
-    }
-    // Auto-submit when all 6 digits are filled
-    if (_fullOtp.length == 6) {
-      _verifyOtp();
-    }
-  }
-
-  Future<void> _verifyOtp() async {
-    if (_fullOtp.length < 6 || _isLoading) return;
+  Future<void> _verifyOtp(String pin) async {
+    if (pin.length < 6 || _isLoading) return;
     FocusScope.of(context).unfocus();
     setState(() => _isLoading = true);
 
     final success = await AuthController.verifyOtp(
       verificationId: widget.verificationId,
-      smsCode: _fullOtp,
+      smsCode: pin,
       phone: widget.phone,
       onError: (error) {
         if (mounted) {
@@ -102,20 +79,17 @@ class _OtpViewState extends State<OtpView> with SingleTickerProviderStateMixin {
               behavior: SnackBarBehavior.floating,
             ),
           );
-          // Clear OTP boxes on error
-          for (var c in _controllers) {
-            c.clear();
-          }
-          FocusScope.of(context).requestFocus(_focusNodes[0]);
+          _otpController.clear();
+          _focusNode.requestFocus();
         }
       },
     );
 
     if (success && mounted) {
-      // Sync with Shopify in background
+      // Sync with Shopify in background (Don't block the UI)
       AuthController.syncWithShopify(widget.phone);
 
-      // Navigate to home
+      // Navigate to home immediately
       Navigator.pushAndRemoveUntil(
         context,
         PageRouteBuilder(
@@ -177,42 +151,24 @@ class _OtpViewState extends State<OtpView> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _buildOtpBox(int index) {
-    return SizedBox(
-      width: 46,
-      height: 56,
-      child: TextFormField(
-        controller: _controllers[index],
-        focusNode: _focusNodes[index],
-        keyboardType: TextInputType.number,
-        textAlign: TextAlign.center,
-        maxLength: 1,
-        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
-        decoration: InputDecoration(
-          counterText: '',
-          filled: true,
-          fillColor: Colors.grey.shade50,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.shade200),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.shade200),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Constants.baseColor, width: 2),
-          ),
-        ),
-        onChanged: (value) => _onOtpInput(index, value),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    final defaultPinTheme = PinTheme(
+      width: 52,
+      height: 60,
+      textStyle: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+    );
+
+    final focusedPinTheme = defaultPinTheme.copyDecorationWith(
+      border: Border.all(color: Constants.baseColor, width: 2),
+      color: Colors.white,
+    );
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -229,7 +185,7 @@ class _OtpViewState extends State<OtpView> with SingleTickerProviderStateMixin {
           opacity: _fadeAnim,
           child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -254,27 +210,51 @@ class _OtpViewState extends State<OtpView> with SingleTickerProviderStateMixin {
                         fontSize: 26, fontWeight: FontWeight.w800, height: 1.3),
                   ),
                   const SizedBox(height: 8),
-                  Text.rich(
-                    TextSpan(
-                      text: AppLocalizations.of(context)!.enterOtpPrompt,
-                      style:
-                          TextStyle(fontSize: 15, color: Colors.grey.shade500),
-                      children: [
-                        TextSpan(
-                          text: '+91 ${widget.phone}',
-                          style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              color: Colors.grey.shade700),
-                        ),
-                      ],
-                    ),
+                  
+                  // Phone number display (Safe from cutting)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AppLocalizations.of(context)!.enterOtpPrompt,
+                        style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '+91 ${widget.phone}',
+                        style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.grey.shade800),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 40),
 
-                  // OTP Boxes
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: List.generate(6, (i) => _buildOtpBox(i)),
+                  // Pinput Widget
+                  Center(
+                    child: Pinput(
+                      length: 6,
+                      controller: _otpController,
+                      focusNode: _focusNode,
+                      autofocus: true,
+                      defaultPinTheme: defaultPinTheme,
+                      focusedPinTheme: focusedPinTheme,
+                      hapticFeedbackType: HapticFeedbackType.lightImpact,
+                      onCompleted: _verifyOtp,
+                      cursor: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 9),
+                            width: 22,
+                            height: 1,
+                            color: Constants.baseColor,
+                          ),
+                        ],
+                      ),
+                      autofillHints: const [AutofillHints.oneTimeCode],
+                    ),
                   ),
                   const SizedBox(height: 36),
 
@@ -283,7 +263,7 @@ class _OtpViewState extends State<OtpView> with SingleTickerProviderStateMixin {
                     width: double.infinity,
                     height: 58,
                     child: ElevatedButton(
-                      onPressed: _isLoading ? null : _verifyOtp,
+                      onPressed: _isLoading ? null : () => _verifyOtp(_otpController.text),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Constants.baseColor,
                         foregroundColor: Colors.white,

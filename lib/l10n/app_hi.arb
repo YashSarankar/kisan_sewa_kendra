@@ -262,5 +262,6 @@
   "clearCartConfirm": "कार्ट खाली करें?",
   "clearCartConfirmMsg": "क्या आप वाकई अपनी कार्ट से सभी आइटम हटाना चाहते हैं?",
   "cancel": "रद्द करें",
-  "addFollowingToGetFree": "मुफ्त पाने के लिए निम्नलिखित जोड़ें:"
+  "addFollowingToGetFree": "मुफ्त पाने के लिए निम्नलिखित जोड़ें:",
+  "shippingInfo": "शिपिंग जानकारी"
 }

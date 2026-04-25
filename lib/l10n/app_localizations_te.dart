@@ -853,4 +853,7 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get loading => 'Loading...';
+
+  @override
+  String get shippingInfo => 'షిప్పింగ్ సమాచారం';
 }

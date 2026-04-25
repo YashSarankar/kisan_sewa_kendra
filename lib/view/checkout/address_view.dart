@@ -34,6 +34,7 @@ class _AddressViewState extends State<AddressView> {
 
   List<Map<String, String>> _addressList = [];
   int? _selectedIndex;
+  int? _editingIndex;
   bool _isAddingAddress = false;
   String? _savedName;
   String? _savedPhone;
@@ -56,7 +57,6 @@ class _AddressViewState extends State<AddressView> {
         _savedPhone = phone;
 
         if (_addressList.isNotEmpty) {
-          // Keep selection if valid, else default to 0
           if (_selectedIndex == null || _selectedIndex! >= _addressList.length) {
             _selectedIndex = 0;
           }
@@ -69,14 +69,25 @@ class _AddressViewState extends State<AddressView> {
     }
   }
 
-  void _preFillDetails() {
-    if (_savedName != null && _savedName!.isNotEmpty) {
-      final parts = _savedName!.split(' ');
-      _firstNameController.text = parts.first;
-      _lastNameController.text =
-          parts.length > 1 ? parts.sublist(1).join(' ') : '';
+  void _preFillDetails([Map<String, String>? editAddr]) {
+    if (editAddr != null) {
+      _firstNameController.text = editAddr['first_name'] ?? '';
+      _lastNameController.text = editAddr['last_name'] ?? '';
+      _phoneController.text = editAddr['phone'] ?? '';
+      _pincodeController.text = editAddr['pincode'] ?? '';
+      _address1Controller.text = editAddr['address1'] ?? '';
+      _address2Controller.text = editAddr['address2'] ?? '';
+      _cityController.text = editAddr['city'] ?? '';
+      _stateController.text = editAddr['state'] ?? '';
+    } else {
+      if (_savedName != null && _savedName!.isNotEmpty) {
+        final parts = _savedName!.split(' ');
+        _firstNameController.text = parts.first;
+        _lastNameController.text =
+            parts.length > 1 ? parts.sublist(1).join(' ') : '';
+      }
+      if (_savedPhone != null) _phoneController.text = _savedPhone!;
     }
-    if (_savedPhone != null) _phoneController.text = _savedPhone!;
   }
 
   @override
@@ -109,8 +120,8 @@ class _AddressViewState extends State<AddressView> {
             final po = postOffice['PostOffice'][0];
             if (mounted) {
               setState(() {
-                _cityController.text = po['District'] ?? '';
-                _stateController.text = po['State'] ?? '';
+                _cityController.text = po['District'] ?? _cityController.text;
+                _stateController.text = po['State'] ?? _stateController.text;
               });
             }
           }
@@ -162,14 +173,10 @@ class _AddressViewState extends State<AddressView> {
       Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
 
-      // Set locale based on app language
       try {
         String localeTag =
             Constants.lang.toLowerCase() == "hi" ? "hi_IN" : "en_US";
-        debugPrint(
-            "Fetching location with locale: $localeTag (Constants.lang: ${Constants.lang})");
         await setLocaleIdentifier(localeTag);
-        // Small delay to ensure the native side processes the locale change
         await Future.delayed(const Duration(milliseconds: 200));
       } catch (e) {
         debugPrint("Geocoding locale error: $e");
@@ -178,25 +185,28 @@ class _AddressViewState extends State<AddressView> {
       List<Placemark> placemarks =
           await placemarkFromCoordinates(position.latitude, position.longitude);
 
-      debugPrint("Placemarks found: ${placemarks.length}");
       if (placemarks.isNotEmpty) {
         Placemark place = placemarks[0];
-        debugPrint(
-            "Place details: name=${place.name}, locality=${place.locality}, street=${place.street}");
         if (mounted) {
           setState(() {
-            _address1Controller.text = '${place.name}, ${place.subLocality}'
-                .trim()
-                .replaceAll(RegExp(r'^,\s*'), '');
-            _address2Controller.text = '${place.locality}';
+            String name = place.name ?? '';
+            if (name.contains('+') || name.contains('Unnamed')) name = '';
+            
+            String subLoc = place.subLocality ?? '';
+            
+            _address1Controller.text = [name, subLoc]
+                .where((s) => s.isNotEmpty)
+                .join(', ')
+                .trim();
+                
+            _address2Controller.text = place.locality ?? '';
             _cityController.text =
                 place.subAdministrativeArea ?? place.locality ?? '';
             _stateController.text = place.administrativeArea ?? '';
 
             if (place.postalCode != null && place.postalCode!.isNotEmpty) {
               _pincodeController.text = place.postalCode!;
-              _fetchPincodeData(
-                  place.postalCode!); // Auto-fetch city/state to be sure
+              _fetchPincodeData(place.postalCode!);
             }
           });
         }
@@ -239,29 +249,44 @@ class _AddressViewState extends State<AddressView> {
 
     setState(() => _isProcessingCod = true);
 
-    await AuthController.saveAddress(
-      pincode: addr['pincode']!,
-      address1: addr['address1']!,
-      address2: addr['address2']!,
-      city: addr['city']!,
-      state: addr['state']!,
-      name: addr['name'],
-      firstName: addr['first_name'],
-      lastName: addr['last_name'],
-      phone: addr['phone'],
-    );
+    if (_editingIndex != null) {
+      // Logic to update instead of insert (via helper in AuthController)
+      await AuthController.updateAddress(
+        index: _editingIndex!,
+        pincode: addr['pincode']!,
+        address1: addr['address1']!,
+        address2: addr['address2']!,
+        city: addr['city']!,
+        state: addr['state']!,
+        name: addr['name'],
+        firstName: addr['first_name'],
+        lastName: addr['last_name'],
+        phone: addr['phone'],
+      );
+    } else {
+      await AuthController.saveAddress(
+        pincode: addr['pincode']!,
+        address1: addr['address1']!,
+        address2: addr['address2']!,
+        city: addr['city']!,
+        state: addr['state']!,
+        name: addr['name'],
+        firstName: addr['first_name'],
+        lastName: addr['last_name'],
+        phone: addr['phone'],
+      );
+    }
 
-    // Refresh list and select the new address
     final addresses = await AuthController.getStoredAddresses();
     if (mounted) {
       setState(() {
         _addressList = addresses;
-        _selectedIndex = 0;
+        _selectedIndex = _editingIndex ?? 0;
         _isAddingAddress = false;
+        _editingIndex = null;
         _isProcessingCod = false;
       });
 
-      // Always pop back to the caller
       Navigator.pop(context, addr);
     }
   }
@@ -486,7 +511,6 @@ class _AddressViewState extends State<AddressView> {
                               label: AppLocalizations.of(context)!.cityDistrict,
                               hint:
                                   AppLocalizations.of(context)!.placeholderCity,
-                              readOnly: _cityController.text.isNotEmpty,
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -496,7 +520,6 @@ class _AddressViewState extends State<AddressView> {
                               label: AppLocalizations.of(context)!.state,
                               hint: AppLocalizations.of(context)!
                                   .placeholderState,
-                              readOnly: _stateController.text.isNotEmpty,
                             ),
                           ),
                         ],
@@ -521,6 +544,7 @@ class _AddressViewState extends State<AddressView> {
                                 _cityController.clear();
                                 _stateController.clear();
                                 _preFillDetails();
+                                _editingIndex = null;
                                 _isAddingAddress = true;
                               });
                             },
@@ -613,12 +637,26 @@ class _AddressViewState extends State<AddressView> {
                                       ],
                                     ),
                                   ),
-                                  IconButton(
-                                    onPressed: () async {
-                                      await AuthController
-                                          .removeAddressFromList(index);
-                                      _loadAddresses();
-                                    },
+                                   IconButton(
+                                     onPressed: () {
+                                       setState(() {
+                                         _editingIndex = index;
+                                         _isAddingAddress = true;
+                                         _preFillDetails(addr);
+                                       });
+                                     },
+                                     icon: Icon(Icons.edit_outlined,
+                                         size: 20, color: Constants.baseColor),
+                                     padding: EdgeInsets.zero,
+                                     constraints: const BoxConstraints(),
+                                   ),
+                                   const SizedBox(width: 8),
+                                   IconButton(
+                                     onPressed: () async {
+                                       await AuthController
+                                           .removeAddressFromList(index);
+                                       _loadAddresses();
+                                     },
                                     icon: Icon(Icons.delete_outline_rounded,
                                         size: 20, color: Colors.red[300]),
                                     padding: EdgeInsets.zero,

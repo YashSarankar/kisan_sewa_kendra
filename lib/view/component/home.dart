@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:kisan_sewa_kendra/l10n/app_localizations.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import 'package:google_fonts/google_fonts.dart';
@@ -419,15 +420,16 @@ class _HomeState extends State<Home> {
                         ? Padding(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 8),
-                            child: Container(
-                              height: 140,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(16),
+                            child: Shimmer.fromColors(
+                              baseColor: Colors.grey.shade100,
+                              highlightColor: Colors.white,
+                              child: Container(
+                                height: 140,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
                               ),
-                              child: const Center(
-                                  child: CircularProgressIndicator(
-                                      color: Color(0xFF26842c))),
                             ),
                           )
                         : _banners.isNotEmpty
@@ -471,12 +473,29 @@ class _HomeState extends State<Home> {
 
                   // --- CATEGORIES GRID ---
                   if (_isLoadingCats)
-                    const SliverToBoxAdapter(
-                      child: SizedBox(
-                        height: 120,
-                        child: Center(
-                            child: CircularProgressIndicator(
-                                color: Color(0xFF26842c))),
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      sliver: SliverGrid(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          childAspectRatio: 1.0,
+                        ),
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) => Shimmer.fromColors(
+                            baseColor: Colors.grey.shade100,
+                            highlightColor: Colors.white,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                          childCount: 6,
+                        ),
                       ),
                     )
                   else

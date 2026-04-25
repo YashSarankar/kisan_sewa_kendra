@@ -1687,6 +1687,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Loading...'**
   String get loading;
+
+  /// No description provided for @shippingInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'SHIPPING INFORMATION'**
+  String get shippingInfo;
 }
 
 class _AppLocalizationsDelegate

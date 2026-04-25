@@ -847,4 +847,7 @@ class AppLocalizationsMr extends AppLocalizations {
 
   @override
   String get loading => 'Loading...';
+
+  @override
+  String get shippingInfo => 'शिपिंग माहिती';
 }

@@ -63,9 +63,9 @@ class _LoginViewState extends State<LoginView>
     if (!_formKey.currentState!.validate()) return;
     if (_cooldown > 0) return;
     setState(() => _isLoading = true);
-    
-    // Clear any existing session before starting a new login
-    await AuthController.signOut();
+
+    // Clear session in background (don't block SMS request)
+    AuthController.signOut();
 
     await AuthController.sendOtp(
       phone: _phoneController.text.trim(),
@@ -186,6 +186,7 @@ class _LoginViewState extends State<LoginView>
                     TextFormField(
                       controller: _phoneController,
                       keyboardType: TextInputType.phone,
+                      autofillHints: const [AutofillHints.telephoneNumber],
                       maxLength: 10,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       style: const TextStyle(

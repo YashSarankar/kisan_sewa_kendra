@@ -261,5 +261,6 @@
   "clearCart": "सर्व हटवा",
   "clearCartConfirm": "कार्ट रिकामी करायची?",
   "clearCartConfirmMsg": "तुम्ही खरोखर तुमच्या कार्टमधून सर्व आयटम काढू इच्छिता?",
-  "cancel": "रद्द करा"
+  "cancel": "रद्द करा",
+  "shippingInfo": "शिपिंग माहिती"
 }

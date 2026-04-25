@@ -15,7 +15,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get categories => 'வகைகள்';
 
   @override
-  String get myOrders => 'எனது ஆர்டர்கள்';
+  String get myOrders => 'எனదు ஆர்டர்கள்';
 
   @override
   String get myCart => 'எனது கார்ட்';
@@ -33,7 +33,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get shippingPolicy => 'ஷிப்பிங் கொள்கை';
 
   @override
-  String get termsConditions => 'விதிமுறைகள் மற்றும் நிபந்தனைகள்';
+  String get termsConditions => 'விதிமுறைகள் மற்றும் నిబంధనలు';
 
   @override
   String get pureOrganic => 'பிரீமியம் தேர்வு';
@@ -57,7 +57,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get insecticides => 'பூச்சிக்கொல்லிகள்';
 
   @override
-  String get fungicides => 'பூஞ்சை காளான்';
+  String get fungicides => 'பூஞ்சை కాళాన్';
 
   @override
   String get fertilizers => 'உரங்கள்';
@@ -92,16 +92,16 @@ class AppLocalizationsTa extends AppLocalizations {
   String get agriSupport => 'விவசாய உதவி';
 
   @override
-  String get whatsAppSupport => 'வாட்ஸ்அப் உதவி';
+  String get whatsAppSupport => 'వాట్సాప్ உதவி';
 
   @override
   String get collection => 'சேகரிப்பு';
 
   @override
-  String get aToZ => 'அ → ஔ (A → Z)';
+  String get aToZ => 'అ → క్ష (A → Z)';
 
   @override
-  String get zToA => 'ஔ → அ (Z → A)';
+  String get zToA => 'క్ష → అ (Z → A)';
 
   @override
   String get defaultText => 'இயல்புநிலை';
@@ -145,7 +145,7 @@ class AppLocalizationsTa extends AppLocalizations {
   }
 
   @override
-  String get details => 'விவரங்கள்';
+  String get details => 'விవరங்கள்';
 
   @override
   String get reorder => 'மீண்டும் ஆர்டர் செய்';
@@ -154,28 +154,28 @@ class AppLocalizationsTa extends AppLocalizations {
   String get itemsAddedToBag => 'பொருட்கள் பையில் சேர்க்கப்பட்டன';
 
   @override
-  String get accessRestricted => 'அணுகல் கட்டுப்படுத்தப்பட்டது';
+  String get accessRestricted => 'అణుకల్ కట్టుప్పడుత్తప్పట్టదు';
 
   @override
   String get signInPrompt =>
-      'உங்கள் ஆர்டர்களைப் பார்க்கவும் மற்றும் உங்கள் ஷிப்மென்ட்டைப் பின்தொடரவும் தயவுசெய்து உள்நுழையவும்.';
+      'உங்கள் ஆர்டர்களைப் பார்க்கவும் மற்றும் உங்கள் ஷிப்மென்ட்டைப் పిన్రొడరవుం தயவுசெய்து உள்நுழையவும்.';
 
   @override
   String get bagEmpty => 'உங்கள் பை காலியாக உள்ளது';
 
   @override
   String get emptyOrdersPrompt =>
-      'நீங்கள் இன்னும் எந்த ஆர்டரையும் செய்யவில்லை என்று தெரிகிறது. ஷாப்பிங் செய்யத் தொடங்குங்கள்!';
+      'நீங்கள் இன்னும் எந்த ஆர்டரையும் செய்யவில்லை என்று தெரிகிறது. షాప్పింగ్ చేయండి!';
 
   @override
-  String get callNow => 'இப்போது அழைக்கவும்';
+  String get callNow => 'ఇప్పుడే కాల్ చేయండి';
 
   @override
-  String get helpSupport => 'உதவி மற்றும் ஆதரவு';
+  String get helpSupport => 'உதவி మరియు ஆதரவு';
 
   @override
   String get supportSubtitle =>
-      'உங்களுக்கு எதிலும் உதவ நாங்கள் தயாராக இருக்கிறோம்.';
+      'உங்களுக்கு ఎరிலும் உதவ நாங்கள் தயாராக இருக்கிறோம்.';
 
   @override
   String get sendMessage => 'செய்தி அனுப்பு';
@@ -218,7 +218,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get officeAddress =>
-      'G-2/197A, குல்மோகர் காலனி, போபால், ம.பி., 462039';
+      'G-2/197A, குல்மோகர் காலனி, போபால், మ.పి., 462039';
 
   @override
   String get officeEmail => 'info@krishikrantiorganics.com';
@@ -227,7 +227,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get orderSummary => 'ஆர்டர் சுருக்கம்';
 
   @override
-  String get trackOrder => 'ஆர்டரைப் பின்தொடரவும்';
+  String get trackOrder => 'ஆர்டரைப் పిన్రొడరవుం';
 
   @override
   String get orderPlaced => 'ஆர்டர் செய்யப்பட்டது';
@@ -236,22 +236,22 @@ class AppLocalizationsTa extends AppLocalizations {
   String get processing => 'செயலாக்கம்';
 
   @override
-  String get shipped => 'அனுப்பப்பட்டது';
+  String get shipped => 'అనుప్పప్పట్టదు';
 
   @override
-  String get outForDelivery => 'டெலிவரிக்கு வெளியே உள்ளது';
+  String get outForDelivery => 'டெலிவரிக்கு వెలియే ఉంది';
 
   @override
-  String get statusUpdatedRecently => 'நிலை சமீபத்தில் புதுப்பிக்கப்பட்டது';
+  String get statusUpdatedRecently => 'நிலை ఇటీవల నవీకరించబడింది';
 
   @override
-  String get trackOnShopify => 'Shopify இல் பின்தொடரவும்';
+  String get trackOnShopify => 'Shopify இல் పిన్రొడరవుం';
 
   @override
   String get orderInfo => 'ஆர்டர் தகவல்';
 
   @override
-  String get placedOn => 'அன்று செய்யப்பட்டது';
+  String get placedOn => 'అన్రు செய்யப்பட்டது';
 
   @override
   String get payment => 'கட்டணம்';
@@ -263,7 +263,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get billSummary => 'பில் சுருக்கம்';
 
   @override
-  String get itemTotal => 'பொருட்களின் மொத்தம்';
+  String get itemTotal => 'பொருட்களின் మొత్తం';
 
   @override
   String get deliveryCharge => 'டெலிவரி கட்டணம்';
@@ -293,11 +293,11 @@ class AppLocalizationsTa extends AppLocalizations {
   String get goBack => 'பின்னால் செல்';
 
   @override
-  String get cancelSuccess => 'ஆர்டர் வெற்றிகரமாக ரத்து செய்யப்பட்டது';
+  String get cancelSuccess => 'ஆர்டர் வெற்றிகரமாக రత్తు செய்யப்பட்டது';
 
   @override
   String get cancelFail =>
-      'ஆர்டரை ரத்து செய்ய முடியவில்லை. மீண்டும் முயற்சிக்கவும்.';
+      'ஆர்டரை రత్తు చేయ ముడియవిల్లై. மீண்டும் முயற்சிக்கவும்.';
 
   @override
   String get reasonChangedMind => 'என் எண்ணத்தை மாற்றிக்கொண்டேன்';
@@ -309,10 +309,10 @@ class AppLocalizationsTa extends AppLocalizations {
   String get reasonBetterPrice => 'வேறு இடங்களில் சிறந்த விலை கிடைத்தது';
 
   @override
-  String get reasonLongTime => 'டெலிவரி நேரம் மிக அதிகம்';
+  String get reasonLongTime => 'டெলিவரி நேரம் மிக அதிகம்';
 
   @override
-  String get reasonCoupon => 'கூப்பனைப் பயன்படுத்த மறந்துவிட்டேன்';
+  String get reasonCoupon => 'కూపన్ పయన్రొడుత్త మరందువిట్టేన్';
 
   @override
   String get reasonOther => 'இதர';
@@ -334,10 +334,10 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get statusDefaultMsg =>
-      'அற்புதம்! உங்களுக்குச் சேவையாற்ற ஆவலுடன் காத்திருக்கிறோம்.';
+      'அற்புதம்! உங்களுக்குச் సేవాయాట్ర ఆవలుడన్ కాత్తిరుక్కిరోమ్.';
 
   @override
-  String get shopByCategory => 'வகையின் அடிப்படையில் ஷாப்பிங் செய்யுங்கள்';
+  String get shopByCategory => 'வகையின் அடிப்படையில் ஷాப்பிங் செய்யுங்கள்';
 
   @override
   String categoryCount(Object count) {
@@ -358,7 +358,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get review1Name => 'ராகுல் சர்மா';
 
   @override
-  String get review2Name => 'அமித் படேல்';
+  String get review2Name => 'அமித் படేல்';
 
   @override
   String get you => 'நீங்கள்';
@@ -378,7 +378,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get optionalUpdateMsg =>
-      'புதிய அம்சங்கள் மற்றும் மேம்பாடுகளுடன் பயன்பாட்டின் புதிய பதிப்பு உள்ளது.';
+      'புதிய அம்சங்கள் మరియు மேம்பாடுகளுடன் பயன்பாட்டின் புதிய பதிப்பு உள்ளது.';
 
   @override
   String get later => 'பிறகு';
@@ -390,20 +390,20 @@ class AppLocalizationsTa extends AppLocalizations {
   String get welcomeTo => 'தொடங்குவோம்';
 
   @override
-  String get loginPrompt => 'தொடர உங்கள் மொபைல் எண்ணுடன் உள்நுழையவும்';
+  String get loginPrompt => 'தொடర உங்கள் మొబైల్ எண்ணுடன் உள்நுழையவும்';
 
   @override
   String get mobileNumber => 'மொபைல் எண்';
 
   @override
-  String get enterMobileValid => 'தயவுசெய்து உங்கள் மொபைல் எண்ணை உள்ளிடவும்';
+  String get enterMobileValid => 'தயவுசெய்து உங்கள் మొబైల్ எண்ணை உள்ளிடவும்';
 
   @override
-  String get enterMobile10 => 'மொபைல் எண் 10 இலக்கங்களாக இருக்க வேண்டும்';
+  String get enterMobile10 => 'மொபைல் எண் 10 இலக்கங்களாக ఉండాలి';
 
   @override
   String tryAgainIn(Object seconds) {
-    return '$seconds வினாடிகளில் மீண்டும் முயற்சிக்கவும்';
+    return '$seconds వినాడిగళిల్ மீண்டும் முயற்சிக்கவும்';
   }
 
   @override
@@ -441,7 +441,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get farmingEssentials => 'விவசாயத் தேவைகள்';
 
   @override
-  String get slideToDelete => 'நீக்க இடதுபுறம் ஸ்லைடு செய்யவும்';
+  String get slideToDelete => 'నీక్క இடదుపురం స్లైడ్ చేయవుమ్';
 
   @override
   String get checkout => 'செக்அவுட்';
@@ -450,7 +450,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get cart => 'கார்ட்';
 
   @override
-  String get address => 'முகவரி';
+  String get address => 'చిరునామా';
 
   @override
   String get basketEmpty => 'கூடை காலியாக உள்ளது';
@@ -460,16 +460,16 @@ class AppLocalizationsTa extends AppLocalizations {
       'உங்கள் கூடை எங்கள் பண்ணை-புதிய,\nசிறந்த விவசாயப் பொருட்களுக்காகக் காத்திருக்கிறது.';
 
   @override
-  String get startShopping => 'ஷாப்பிங் செய்யத் தொடங்குங்கள்';
+  String get startShopping => 'షాప్పింగ్ చేయడానికి తొడరుంగళ్';
 
   @override
   String get pureOrganicQuality => 'பிரீமியம் தரத் தேர்வு';
 
   @override
-  String get haveCoupon => 'கூப்பன் குறியீடு உள்ளதா?';
+  String get haveCoupon => 'కూపన్ కురియీడు ఉళ్ళదా?';
 
   @override
-  String get couponApplied => 'கூப்பன் பயன்படுத்தப்பட்டது';
+  String get couponApplied => 'కూపన్ పయన్రొడుత్తప్పట్టదు';
 
   @override
   String get saveMoreMsg => 'உங்கள் ஆர்டரில் மேலும் சேமிக்கவும்';
@@ -523,22 +523,22 @@ class AppLocalizationsTa extends AppLocalizations {
       'உங்களுக்கு விரைவில் உறுதிப்படுத்தல் மின்னஞ்சல் வரும்';
 
   @override
-  String get continueShopping => 'ஷாப்பிங்கைத் தொடரவும்';
+  String get continueShopping => 'షాప్పింగైత్ తొడరవుమ్';
 
   @override
-  String get couponDiscount => 'கூப்பன் தள்ளுபடி';
+  String get couponDiscount => 'కూపన్ తళ్ళిబడి';
 
   @override
   String get deliveryFee => 'டெலிவரி கட்டணம்';
 
   @override
-  String get change => 'மாற்று';
+  String get change => 'మాత్రు';
 
   @override
   String get orderNumber => 'ஆர்டர் எண்';
 
   @override
-  String get amountPaid => 'செலுத்தப்பட்ட தொகை';
+  String get amountPaid => 'సెలుత్తప్పట్ట తొహై';
 
   @override
   String get paymentId => 'கட்டண ஐடி';
@@ -548,10 +548,10 @@ class AppLocalizationsTa extends AppLocalizations {
       'இந்த பிரிவில் தயாரிப்புகள் எதுவும் காணப்படவில்லை';
 
   @override
-  String get sortBy => 'இதன்படி வரிசைப்படுத்து';
+  String get sortBy => 'దీనిపడి వరుసైప్పడుత్తు';
 
   @override
-  String get add => 'சேர்க்கவும்';
+  String get add => 'సేర్క్కవుమ్';
 
   @override
   String get options => 'விருப்பங்கள்';
@@ -560,7 +560,8 @@ class AppLocalizationsTa extends AppLocalizations {
   String get selectOption => 'விருப்பத்தைத் தேர்ந்தெடுக்கவும்';
 
   @override
-  String get productUnavailable => 'தயாரிப்பு விவரங்கள் தற்போது கிடைக்கவில்லை';
+  String get productUnavailable =>
+      'தயாரிப்பு விவரங்கள் ప్రస్తుతం కిడైక్కవిల్లై';
 
   @override
   String get brand => 'பிராண்ட்';
@@ -587,13 +588,13 @@ class AppLocalizationsTa extends AppLocalizations {
   String get trust3Line1 => 'சிறந்த முடிவுகள்';
 
   @override
-  String get trust3Line2 => 'உத்தரவாதம்';
+  String get trust3Line2 => 'உத்தரவாదం';
 
   @override
   String get selectVariant => 'வகையைத் தேர்ந்தெடுக்கவும்';
 
   @override
-  String get overview => 'கண்ணோட்டம்';
+  String get overview => 'కణ్ణోట్టం';
 
   @override
   String get similarProducts => 'ஒத்த தயாரிப்புகள்';
@@ -605,10 +606,10 @@ class AppLocalizationsTa extends AppLocalizations {
   String get addedToCart => 'தயாரிப்பு கார்ட்டில் சேர்க்கப்பட்டது!';
 
   @override
-  String get easy => 'எளிதான';
+  String get easy => 'ఎళిదాన';
 
   @override
-  String get fast => 'வேகமான';
+  String get fast => 'వేగమాన';
 
   @override
   String get addToCart => 'கார்ட்டில் சேர்க்கவும்';
@@ -654,10 +655,10 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get shareExperience =>
-      'இந்த தயாரிப்புடனான உங்கள் அனுபவத்தைப் பகிர்ந்து கொள்ளுங்கள்';
+      'ఈ తైయారిప్పుడనాన ఉంగళ్ అనుభవత్తైప్ పగిరందు కొళ్ళుంగళ్';
 
   @override
-  String get describeExperience => 'உங்கள் அனுபவத்தை விவரிக்கவும்...';
+  String get describeExperience => 'உங்கள் அனுபவத்தை విவரிக்கவும்...';
 
   @override
   String get submitReview => 'விமர்சனத்தைச் சமர்ப்பிக்கவும்';
@@ -675,7 +676,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get methodDesc =>
-      'அதிகபட்ச செயல்திறனுக்காக இலை தெளிப்பு முறையாகப் பயன்படுத்தவும்.';
+      'அதிகபட்ச செயல்திறனுக்காக ఇలై తెలియ్ప్పు మురైయాహప్ పయన్రొడుత్తవుమ్.';
 
   @override
   String get review1Comment =>
@@ -712,7 +713,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get selectAddressToProceed =>
-      'தொடர டெலிவரி முகவரியைத் தேர்ந்தெடுக்கவும்';
+      'తొడర డెలివరీ ముహవరియైత్ తేర్న్దెడుక్కవుమ్';
 
   @override
   String get addDeliveryAddress => 'டெலிவரி முகவரியைச் சேர்க்கவும்';
@@ -729,7 +730,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get couponActiveOnlineDisabled =>
-      'கூப்பன் செயலில் உள்ளது: ஆன்லைன் தள்ளுபடி முடக்கப்பட்டது.';
+      'కూపన్ సెయలిల్ ఉళ్ళదు: ஆன்லைன் தள்ளுபடி ముడక్కప్పట్టదు.';
 
   @override
   String get payMethodSubtitle => 'UPI, கார்டு, வாலட்';
@@ -738,22 +739,22 @@ class AppLocalizationsTa extends AppLocalizations {
   String get codSubtitle => 'உங்கள் வீட்டு வாசலில் பணம் செலுத்துங்கள்';
 
   @override
-  String get secureTransactions => '100% பாதுகாப்பான பரிவர்த்தனைகள்';
+  String get secureTransactions => '100% பாதுகாப்பான పరివర్తనైహళ్';
 
   @override
-  String get trustBadges => 'அசல் • சான்றிதழ் பெற்ற • நம்பகமான';
+  String get trustBadges => 'அசல் • సాன்றிదழ் పెట్ర • నంబహమాన';
 
   @override
-  String get applyCoupon => 'கூப்பனைப் பயன்படுத்து';
+  String get applyCoupon => 'కూపనైప్ పయన్రొడుత్తు';
 
   @override
-  String get enterCouponCode => 'கூப்பன் குறியீட்டை உள்ளிடவும்';
+  String get enterCouponCode => 'కూపన్ కురియీట్టై ఉళ్ళిడవుమ్';
 
   @override
   String get apply => 'பயன்படுத்து';
 
   @override
-  String get invalidCoupon => 'தவறான அல்லது காலாவதியான கூப்பன் குறியீடு.';
+  String get invalidCoupon => 'தவறான அல்லது காலாவதியான కూపన్ కురియీడు.';
 
   @override
   String get newDeliveryAddress => 'புதிய டெலிவரி முகவரி';
@@ -783,7 +784,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get locating => 'கண்டறிகிறது...';
 
   @override
-  String get useCurrentLocation => 'தற்போதைய இருப்பிடத்தைப் பயன்படுத்தவும்';
+  String get useCurrentLocation => 'తర్పెడైయ ఇరుప్పిడత్తైప్ పయన్రొడుత్తవుమ్';
 
   @override
   String get pincode => 'பின்கோடு';
@@ -819,14 +820,14 @@ class AppLocalizationsTa extends AppLocalizations {
   String get confirmAddress => 'முகவரியை உறுதிப்படுத்தவும்';
 
   @override
-  String get locationDisabled => 'இருப்பிட சேவைகள் முடக்கப்பட்டுள்ளன.';
+  String get locationDisabled => 'இருப்பிட சேவைகள் ముడక్కప్పట్టుళ్ళన.';
 
   @override
-  String get locationDenied => 'இருப்பிட அனுமதிகள் மறுக்கப்பட்டுள்ளன.';
+  String get locationDenied => 'இருப்பிட அனுமதிகள் నిరాకరించప్పట్టుళ్ళన.';
 
   @override
   String get locationPermanentlyDenied =>
-      'இருப்பிட அனுமதிகள் நிரந்தரமாக மறுக்கப்பட்டுள்ளன.';
+      'இருப்பிட அனுமதிகள் నిరందరమాహ నిరాకరించప్పట్టుళ్ళన.';
 
   @override
   String get locationFailed => 'இருப்பிடத்தைப் பெறுவதில் தோல்வி';
@@ -847,7 +848,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get clearCart => 'அனைத்தையும் நீக்கு';
 
   @override
-  String get clearCartConfirm => 'கார்ட்டை காலியாக்கவா?';
+  String get clearCartConfirm => 'கார்ட்டை కాల్యాక్కవా?';
 
   @override
   String get clearCartConfirmMsg =>
@@ -861,4 +862,7 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get loading => 'Loading...';
+
+  @override
+  String get shippingInfo => 'ஷிப்பிங் தகவல்';
 }

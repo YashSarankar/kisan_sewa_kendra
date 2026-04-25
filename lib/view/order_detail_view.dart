@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../model/order_model.dart';
@@ -251,6 +252,117 @@ class _OrderDetailViewState extends State<OrderDetailView> {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
+              ),
+            ),
+          ],
+          if (!_currentOrder.isCancellable &&
+              _currentOrder.fulfillments.isNotEmpty &&
+              _currentOrder.hasTrackingNumber) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey[200]!),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.local_shipping_outlined,
+                          size: 18, color: Constants.baseColor),
+                      const SizedBox(width: 8),
+                      Text(AppLocalizations.of(context)!.shippingInfo,
+                          style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF1E1E1E))),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("AWB / Tracking ID",
+                              style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.grey[500])),
+                          const SizedBox(height: 2),
+                          Text(
+                              _currentOrder.fulfillments.last.trackingNumber ??
+                                  "",
+                              style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w800,
+                                  color: const Color(0xFF1E1E1E))),
+                        ],
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(
+                              text: _currentOrder
+                                      .fulfillments.last.trackingNumber ??
+                                  ""));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text("Tracking ID copied!")),
+                          );
+                        },
+                        icon: const Icon(Icons.copy_rounded, size: 18),
+                        color: Constants.baseColor,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  ),
+                  if (_currentOrder.fulfillments.last.trackingCompany !=
+                      null) ...[
+                    const Divider(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                            "Courier: ${_currentOrder.fulfillments.last.trackingCompany}",
+                            style: GoogleFonts.inter(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[600])),
+                        if (_currentOrder.fulfillments.last.trackingUrl != null)
+                          TextButton.icon(
+                            onPressed: () async {
+                              final urlString =
+                                  _currentOrder.fulfillments.last.trackingUrl!;
+                              final url = Uri.parse(urlString);
+                              if (await canLaunchUrl(url)) {
+                                await launchUrl(url,
+                                    mode: LaunchMode.externalApplication);
+                              }
+                            },
+                            icon: const Icon(Icons.track_changes_rounded,
+                                size: 14),
+                            label: const Text("Track Order",
+                                style: TextStyle(
+                                    fontSize: 12, fontWeight: FontWeight.w700)),
+                            style: TextButton.styleFrom(
+                              foregroundColor: Constants.baseColor,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 4),
+                              backgroundColor:
+                                  Constants.baseColor.withOpacity(0.05),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8)),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ],
               ),
             ),
           ],
